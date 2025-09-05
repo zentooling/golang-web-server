@@ -1,0 +1,116 @@
+{{ template "header.html" . }}
+
+<main class="flex-shrink-0">
+
+    <div class="container">
+        <h1 class="mt-5">{{ call .Trans "Configuration" }}</h1>
+
+
+        <div class="container mt-5">
+            <h2 class="mb-4">Logging Level </h2>
+            <!-- <div class="mb-3"> -->
+            <div class="row">
+                <label class="form-label" for="log-select">Server Logging Level</label>
+                <select class="col form-select" id="log-select" name="log-select">
+                    <option value="debug">Debug</option>
+                    <option selected value="info">Info</option>
+                    <option value="warn">Warn</option>
+                    <option value="error">Error</option>
+                </select>
+
+                <div class="col">
+                    <button class="btn btn-primary" type="submit">Submit</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="container-sm my-5">
+            <h2 class="mb-4">Environment Configuration</h2>
+            <form method="post" action="/config">
+                <div class="row mb-3">
+                    <div class="col">
+                        <label for="f1">Cookie Secret</label>
+                        <input name="cookie-secret" type="text" class="form-control" id="f1" value="{{ .Config.CookieSecret }}" >
+                    </div>
+                    <div class="col">
+                        <label for="f2">Listening Port</label>
+                        <input name="port" type="text" class="form-control" id="f2" value="{{ .Config.Port }}" >
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col">
+                        <label for="f3">Database Type</label>
+                        <input name="db-type" type="text" class="form-control" id="f3" placeholder="sqlite">
+                    </div>
+                    <div class="col">
+                        <label for="f4">Database Host</label>
+                        <input name="db-host" type="text" class="form-control" id="f4" placeholder="localhost">
+                    </div>
+                </div> <!-- row -->
+                <div class="row mb-3">
+                    <div class="col">
+                        <label for="f5">Database Port</label>
+                        <input name="db-port" type="text" class="form-control" id="f5" placeholder="5432">
+                    </div>
+                    <div class="col">
+                        <label for="f6">Database Name</label>
+                        <input type="text" class="form-control" id="f6" placeholder="postgres">
+                    </div>
+                </div> <!-- row -->
+                <div class="row mb-3">
+                    <div class="col">
+                        <label for="f7">Database Username</label>
+                        <input type="text" class="form-control" id="f7" placeholder="postgres">
+                    </div>
+                    <div class="col">
+                        <label for="f8">Database Password</label>
+                        <input type="password" class="form-control" id="f8" placeholder="password">
+                    </div>
+                </div> <!-- row -->
+                <div class="row mb-3">
+                    <div class="col">
+                        <label for="f9">Server Base URL</label>
+                        <input type="text" class="form-control" id="f9" placeholder="www.zentoolng.com">
+                    </div>
+                    <div class="col">
+                        <label for="f10">SMTP Server</label>
+                        <input type="text" class="form-control" id="f10" placeholder="www.smtp.org">
+                    </div>
+                </div> <!-- row -->
+                <div class="row mb-3">
+                    <div class="col">
+                        <label for="f11">SMTP Port</label>
+                        <input type="text" class="form-control" id="f11" placeholder="25">
+                    </div>
+                    <div class="col">
+                        <label for="f12">SMTP Sender</label>
+                        <input type="text" class="form-control" id="f12" placeholder="account@zentooling.com">
+                    </div>
+                </div> <!-- row -->
+                <div class="row mb-3">
+                    <div class="col">
+                        <label for="f13">Request Per Minute</label>
+                        <input type="text" class="form-control" id="f13" placeholder="10">
+                    </div>
+                    <div class="col">
+                        <label for="f14">Cache Parameter</label>
+                        <input type="text" class="form-control" id="f14" placeholder="cache:43">
+                    </div>
+                </div> <!-- row -->
+                <div class="row mb-3">
+                    <div class="col">
+                        <label for="f15">Cache Max Age</label>
+                        <input type="text" class="form-control" id="f15" placeholder="44">
+                    </div>
+                    <div class="col">
+                    </div>
+                </div> <!-- row -->
+                <button type="submit" class="mb-5 btn btn-primary" >Submit</button>
+
+            </form>
+        </div>
+    </div>
+
+</main>
+
+{{ template "footer.html" . }}

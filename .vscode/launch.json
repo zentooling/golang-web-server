@@ -1,0 +1,15 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "VSCode Launch from launch.json",
+            "type": "go",
+            "envFile": "${workspaceFolder}/.env",
+            "request": "launch",
+            // "mode": "debug",
+            "outputMode": "remote",
+            "program": "${workspaceFolder}/cmd/base/main.go",
+            "cwd": "${workspaceFolder}",
+        }
+    ]
+}
