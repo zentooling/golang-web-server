@@ -26,19 +26,22 @@ type ILair interface {
 	GetDb() *gorm.DB
 	GetConfig() *Config
 	GetBundle() *i18n.Bundle
+	GetLoggingLevel() *slog.LevelVar
 }
 
 // implement the interface
-func (l Lair) GetDb() *gorm.DB         { return l.db }
-func (l Lair) GetConfig() *Config      { return l.config }
-func (l Lair) GetBundle() *i18n.Bundle { return l.bundle }
+func (l Lair) GetDb() *gorm.DB                 { return l.db }
+func (l Lair) GetConfig() *Config              { return l.config }
+func (l Lair) GetBundle() *i18n.Bundle         { return l.bundle }
+func (l Lair) GetLoggingLevel() *slog.LevelVar { return l.leveler }
 
-func InitLair(db *gorm.DB, config *Config, bundle *i18n.Bundle) ILair {
+func InitLair(db *gorm.DB, config *Config, bundle *i18n.Bundle, levelVar *slog.LevelVar) ILair {
 	// set the global - should be called once at startup
 	glair = &Lair{
-		db:     db,
-		config: config,
-		bundle: bundle,
+		db:      db,
+		config:  config,
+		bundle:  bundle,
+		leveler: levelVar,
 	}
 	return glair
 
@@ -46,13 +49,18 @@ func InitLair(db *gorm.DB, config *Config, bundle *i18n.Bundle) ILair {
 
 // Lair contains application wide values built based on configuration settings
 type Lair struct {
-	db     *gorm.DB
-	config *Config
-	bundle *i18n.Bundle
+	db      *gorm.DB
+	config  *Config
+	bundle  *i18n.Bundle
+	leveler *slog.LevelVar
 }
 
 func LoadEnvVariables() *Config {
 	var c Config
+	c.LogLevel = "DEBUG"
+	if os.Getenv("LOG_LEVEL") != "" {
+		c.LogLevel = os.Getenv("LOG_LEVEL")
+	}
 	c.Port = "8080"
 	if os.Getenv("PORT") != "" {
 		c.Port = os.Getenv("PORT")
@@ -131,4 +139,10 @@ func LoadEnvVariables() *Config {
 	}
 
 	return &c
+}
+
+func StringToLevel(s string) (slog.Level, error) {
+	var level slog.Level
+	var err = level.UnmarshalText([]byte(s))
+	return level, err
 }

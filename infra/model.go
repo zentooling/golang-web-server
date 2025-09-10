@@ -8,6 +8,7 @@ import (
 
 // Config defines all the configuration variables for the golang-base-project
 type Config struct {
+	LogLevel          string
 	Port              string
 	CookieSecret      string
 	Database          string

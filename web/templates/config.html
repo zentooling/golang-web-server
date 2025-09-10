@@ -5,22 +5,27 @@
     <div class="container">
         <h1 class="mt-5">{{ call .Trans "Configuration" }}</h1>
 
+        {{ template "messages.html" . }}
 
         <div class="container mt-5">
             <h2 class="mb-4">Logging Level </h2>
             <!-- <div class="mb-3"> -->
             <div class="row">
-                <label class="form-label" for="log-select">Server Logging Level</label>
-                <select class="col form-select" id="log-select" name="log-select">
-                    <option value="debug">Debug</option>
-                    <option selected value="info">Info</option>
-                    <option value="warn">Warn</option>
-                    <option value="error">Error</option>
-                </select>
+                <form method="post" action="/loglevel">
+                    <label class="form-label" for="log-select">Server Logging Level</label>
+                    <div class="col">
+                        <select class="form-select" id="log-select" name="log-select">
+                        <option {{ if eq .LogLevel "DEBUG" }} selected {{ end }} value="DEBUG">Debug</option>
+                        <option {{ if eq .LogLevel "INFO" }} selected {{ end }} value="INFO">Info</option>
+                        <option {{ if eq .LogLevel "WARN" }} selected {{ end }} value="WARN">Warn</option>
+                        <option {{ if eq .LogLevel "ERROR" }} selected {{ end }} value="ERROR">Error</option>
+                        </select>
+                    </div>
 
-                <div class="col">
-                    <button class="btn btn-primary" type="submit">Submit</button>
-                </div>
+                    <div class="col">
+                        <button class="btn btn-primary" type="submit">Set Level</button>
+                    </div>
+                </form>
             </div>
         </div>
 
@@ -30,11 +35,12 @@
                 <div class="row mb-3">
                     <div class="col">
                         <label for="f1">Cookie Secret</label>
-                        <input name="cookie-secret" type="text" class="form-control" id="f1" value="{{ .Config.CookieSecret }}" >
+                        <input name="cookie-secret" type="text" class="form-control" id="f1"
+                               value="{{ .Config.CookieSecret }}">
                     </div>
                     <div class="col">
                         <label for="f2">Listening Port</label>
-                        <input name="port" type="text" class="form-control" id="f2" value="{{ .Config.Port }}" >
+                        <input name="port" type="text" class="form-control" id="f2" value="{{ .Config.Port }}">
                     </div>
                 </div>
                 <div class="row mb-3">
@@ -105,7 +111,7 @@
                     <div class="col">
                     </div>
                 </div> <!-- row -->
-                <button type="submit" class="mb-5 btn btn-primary" >Submit</button>
+                <button type="submit" class="mb-5 btn btn-primary">Submit</button>
 
             </form>
         </div>

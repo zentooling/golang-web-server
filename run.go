@@ -24,16 +24,23 @@ var staticFS embed.FS
 // Run is the main function that runs the entire package and starts the webserver, this is called by /cmd/base/main.go
 func Run() {
 
-	// set default logger level - TODO make this configurable
-	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-		Level: slog.LevelDebug, // Set the default log level to DEBUG
-	}))
-
-	// Set the logger as the default
-	slog.SetDefault(logger)
 	// We load environment variables, these are only read when the application launches
 	conf := infra.LoadEnvVariables()
 
+	// this logger can be used to change runtime setting through web
+	loggingLevel := new(slog.LevelVar)
+	loggingLevel.Set(slog.LevelDebug) // default to debug
+	level, err := infra.StringToLevel(conf.LogLevel)
+	if err == nil {
+		loggingLevel.Set(level)
+	}
+
+	// set default logger level - TODO make this configurable
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level: loggingLevel, // Set the default log level to DEBUG
+	}))
+	// Set the logger as the default
+	slog.SetDefault(logger)
 	// Translations
 	bundle := infra.LoadLanguageBundles()
 
@@ -45,7 +52,7 @@ func Run() {
 	}
 
 	// set global app-wide cfg parms
-	infra.InitLair(db, conf, bundle)
+	infra.InitLair(db, conf, bundle, loggingLevel)
 
 	// Once a database connection is established we run any needed migrations
 	err = infra.MigrateDatabase(db)
@@ -77,6 +84,10 @@ func Run() {
 
 	// We define our session middleware to be used globally on all routes
 	r.Use(sessions.Sessions("golang_base_project_session", store))
+
+	// log request/responses to see info about bots hitting us
+	r.Use(middleware.RequestLogger())
+	r.Use(middleware.ResponseLogger())
 
 	// We pass our template variable t to the gin engine so it can be used to render html pages
 	r.SetHTMLTemplate(t)
@@ -133,6 +144,7 @@ func Run() {
 	noAuthPost.Use(middleware.Throttle(conf.RequestsPerMinute))
 
 	noAuthPost.POST("/config", routes.ConfigRouteHandlerPost)
+	noAuthPost.POST("/loglevel", routes.LoggingRouteHandlerPost)
 	noAuthPost.POST("/login", routes.LoginPost)
 	noAuthPost.POST("/register", routes.RegisterPost)
 	noAuthPost.POST("/activate/resend", routes.ResendActivationPost)

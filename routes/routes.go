@@ -3,30 +3,12 @@ package routes
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"github.com/uberswe/golang-base-project/infra"
 
 	// "github.com/uberswe/golang-base-project/config"
 
 	"github.com/uberswe/golang-base-project/middleware"
-	"gorm.io/gorm"
 )
-
-// Controller holds all the variables needed for routes to perform their logic
-type Controller struct {
-	db     *gorm.DB
-	config *infra.Config
-	bundle *i18n.Bundle
-}
-
-// New creates a new instance of the routes.Controller
-func New(db *gorm.DB, c *infra.Config, bundle *i18n.Bundle) Controller {
-	return Controller{
-		db:     db,
-		config: c,
-		bundle: bundle,
-	}
-}
 
 // PageData holds the default data needed for HTML pages to render
 type PageData struct {
