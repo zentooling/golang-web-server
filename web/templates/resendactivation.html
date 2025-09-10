@@ -1,9 +1,10 @@
 {{ template "header.html" . }}
 <main>
     {{ template "messages.html" . }}
-    <p class="container mt-5 text-center text-wrap text-muted" style="width: 700px;">
-        {{ call .Trans "If you have not activated your account use this form to have activation email resent" }}
-    </p>
+<!--    <div class="container mt-5 text-center text-wrap text-muted" style="width: 700px;">-->
+    <div class="container mt-5 text-center" >
+    <p class="lead"> {{ call .Trans "If you have not activated your account use this form to have activation email resent" }}</p>
+    </div>
     <div class="container min-vh-100 d-flex justify-content-center align-items-top mt-5" style="width: 400px;">
         <form method="post" action="/activate/resend">
             <h1 class="h3 mb-3 fw-normal">{{ call .Trans "Resend Activation Email" }}</h1>

@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/uberswe/golang-base-project/config"
+	"github.com/uberswe/golang-base-project/infra"
 	"github.com/uberswe/golang-base-project/models"
 )
 
@@ -19,7 +19,7 @@ func ResendActivation(c *gin.Context) {
 // ResendActivationPost handles the post request for requesting a new activation email
 func ResendActivationPost(c *gin.Context) {
 	pd := DefaultPageData(c)
-	db := config.LairInstance().GetDb()
+	db := infra.LairInstance().GetDb()
 	pd.Title = pd.Trans("Resend Activation Email")
 	email := c.PostForm("email")
 	user := models.User{Email: email}

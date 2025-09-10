@@ -1,5 +1,5 @@
 // Package config defines the env configuration variables
-package config
+package infra
 
 import (
 	"github.com/gin-gonic/gin"

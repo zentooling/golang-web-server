@@ -10,8 +10,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"github.com/uberswe/golang-base-project/config"
 	email2 "github.com/uberswe/golang-base-project/email"
+	"github.com/uberswe/golang-base-project/infra"
 	"github.com/uberswe/golang-base-project/models"
 	"github.com/uberswe/golang-base-project/ulid"
 	"golang.org/x/crypto/bcrypt"
@@ -73,7 +73,7 @@ func RegisterPost(c *gin.Context) {
 
 	user := models.User{Email: email}
 
-	db := config.LairInstance().GetDb()
+	db := infra.LairInstance().GetDb()
 
 	res := db.Where(&user).First(&user)
 	if (res.Error != nil && res.Error != gorm.ErrRecordNotFound) || res.RowsAffected > 0 {
@@ -116,7 +116,7 @@ func activationEmailHandler(userID uint, email string, trans func(string) string
 		Type:  models.TokenUserActivation,
 	}
 
-	db := config.LairInstance().GetDb()
+	db := infra.LairInstance().GetDb()
 
 	res := db.Where(&activationToken).First(&activationToken)
 	if (res.Error != nil && res.Error != gorm.ErrRecordNotFound) || res.RowsAffected > 0 {
@@ -138,7 +138,7 @@ func activationEmailHandler(userID uint, email string, trans func(string) string
 }
 
 func sendActivationEmail(token string, email string, trans func(string) string) {
-	cfg := config.LairInstance().GetConfig()
+	cfg := infra.LairInstance().GetConfig()
 	u, err := url.Parse(cfg.BaseURL)
 	if err != nil {
 		slog.Error("activationEmailHandler:sendActivationEmail", "error", err)

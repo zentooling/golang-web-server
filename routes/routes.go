@@ -4,7 +4,7 @@ package routes
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
-	"github.com/uberswe/golang-base-project/config"
+	"github.com/uberswe/golang-base-project/infra"
 
 	// "github.com/uberswe/golang-base-project/config"
 
@@ -15,12 +15,12 @@ import (
 // Controller holds all the variables needed for routes to perform their logic
 type Controller struct {
 	db     *gorm.DB
-	config *config.Config
+	config *infra.Config
 	bundle *i18n.Bundle
 }
 
 // New creates a new instance of the routes.Controller
-func New(db *gorm.DB, c *config.Config, bundle *i18n.Bundle) Controller {
+func New(db *gorm.DB, c *infra.Config, bundle *i18n.Bundle) Controller {
 	return Controller{
 		db:     db,
 		config: c,
@@ -50,12 +50,12 @@ func isAuthenticated(c *gin.Context) bool {
 }
 
 func DefaultPageData(c *gin.Context) PageData {
-	langService := config.NewService(c, config.LairInstance().GetBundle())
+	langService := infra.NewService(c, infra.LairInstance().GetBundle())
 	return PageData{
 		Title:           "Home",
 		Messages:        nil,
 		IsAuthenticated: isAuthenticated(c),
-		CacheParameter:  config.LairInstance().GetConfig().CacheParameter,
+		CacheParameter:  infra.LairInstance().GetConfig().CacheParameter,
 		Trans:           langService.Trans,
 	}
 }

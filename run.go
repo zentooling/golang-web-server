@@ -11,7 +11,7 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
-	"github.com/uberswe/golang-base-project/config"
+	"github.com/uberswe/golang-base-project/infra"
 	"github.com/uberswe/golang-base-project/middleware"
 	"github.com/uberswe/golang-base-project/routes"
 )
@@ -32,23 +32,23 @@ func Run() {
 	// Set the logger as the default
 	slog.SetDefault(logger)
 	// We load environment variables, these are only read when the application launches
-	conf := config.LoadEnvVariables()
+	conf := infra.LoadEnvVariables()
 
 	// Translations
-	bundle := config.LoadLanguageBundles()
+	bundle := infra.LoadLanguageBundles()
 
 	// We connect to the database using the configuration generated from the environment variables.
-	db, err := config.ConnectToDatabase(conf)
+	db, err := infra.ConnectToDatabase(conf)
 	if err != nil {
 		slog.Error("Run", "error", err)
 		os.Exit(2)
 	}
 
 	// set global app-wide cfg parms
-	config.InitLair(db, conf, bundle)
+	infra.InitLair(db, conf, bundle)
 
 	// Once a database connection is established we run any needed migrations
-	err = config.MigrateDatabase(db)
+	err = infra.MigrateDatabase(db)
 	if err != nil {
 		slog.Error("Run", "error", err)
 		os.Exit(3)

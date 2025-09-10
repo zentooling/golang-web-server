@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/uberswe/golang-base-project/config"
+	"github.com/uberswe/golang-base-project/infra"
 	"github.com/uberswe/golang-base-project/middleware"
 	"github.com/uberswe/golang-base-project/models"
 	"github.com/uberswe/golang-base-project/ulid"
@@ -26,7 +26,7 @@ func LoginPost(c *gin.Context) {
 	loginError := pd.Trans("Could not login, please make sure that you have typed in the correct email and password. If you have forgotten your password, please click the forgot password link below.")
 	pd.Title = pd.Trans("Login")
 
-	db := config.LairInstance().GetDb()
+	db := infra.LairInstance().GetDb()
 
 	email := c.PostForm("email")
 	user := models.User{Email: email}

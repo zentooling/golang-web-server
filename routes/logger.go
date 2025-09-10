@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/uberswe/golang-base-project/config"
+	"github.com/uberswe/golang-base-project/infra"
 )
 
 func Loglevel(c *gin.Context) {
@@ -63,7 +63,7 @@ func Loglevel(c *gin.Context) {
 	slog.Info("log at info level")
 	slog.Error("log at error level")
 	slog.Warn("log at warn level")
-	slog.Debug("Run", "config", config.LairInstance().GetConfig())
+	slog.Debug("Run", "config", infra.LairInstance().GetConfig())
 
 	pd.Messages = append(pd.Messages, Message{
 		Type:    "success",

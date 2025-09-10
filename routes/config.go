@@ -5,12 +5,12 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/uberswe/golang-base-project/config"
+	"github.com/uberswe/golang-base-project/infra"
 )
 
 type ConfigPageData struct {
 	PageData
-	Config *config.Config
+	Config *infra.Config
 }
 
 func ConfigRouteHandler(c *gin.Context) {
@@ -19,7 +19,7 @@ func ConfigRouteHandler(c *gin.Context) {
 
 	cd := ConfigPageData{
 		PageData: pd,
-		Config:   config.LairInstance().GetConfig(),
+		Config:   infra.LairInstance().GetConfig(),
 	}
 
 	c.HTML(http.StatusOK, "config.html", cd)
@@ -29,7 +29,7 @@ func ConfigRouteHandlerPost(c *gin.Context) {
 	pd := DefaultPageData(c)
 	pd.Title = pd.Trans("Configuration")
 
-	prevCfg := config.LairInstance().GetConfig()
+	prevCfg := infra.LairInstance().GetConfig()
 
 	newCookie := c.PostForm("cookie-secret")
 
@@ -41,7 +41,7 @@ func ConfigRouteHandlerPost(c *gin.Context) {
 
 	cd := ConfigPageData{
 		PageData: pd,
-		Config:   config.LairInstance().GetConfig(),
+		Config:   infra.LairInstance().GetConfig(),
 	}
 
 	c.HTML(http.StatusOK, "config.html", cd)

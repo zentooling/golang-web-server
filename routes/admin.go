@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/uberswe/golang-base-project/config"
+	"github.com/uberswe/golang-base-project/infra"
 	"github.com/uberswe/golang-base-project/models"
 	"gorm.io/gorm"
 )
@@ -54,7 +54,7 @@ func Admin(c *gin.Context) {
 		},
 	}
 
-	db := config.LairInstance().GetDb()
+	db := infra.LairInstance().GetDb()
 
 	var msu []MonthlySignUps
 

@@ -9,17 +9,17 @@ import (
 	"net/smtp"
 	"strings"
 
-	"github.com/uberswe/golang-base-project/config"
+	"github.com/uberswe/golang-base-project/infra"
 	"github.com/uberswe/golang-base-project/text"
 )
 
-// Service holds a golang-base-project config.Config and provides functions to send emails
+// Service holds a golang-base-project infra.Config and provides functions to send emails
 type Service struct {
-	Config *config.Config
+	Config *infra.Config
 }
 
-// New takes a golang-base-project config.Config and returns an instance of Service
-func New(c *config.Config) Service {
+// New takes a golang-base-project infra.Config and returns an instance of Service
+func New(c *infra.Config) Service {
 	return Service{
 		Config: c,
 	}

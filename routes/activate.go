@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/uberswe/golang-base-project/config"
+	"github.com/uberswe/golang-base-project/infra"
 	"github.com/uberswe/golang-base-project/models"
 )
 
@@ -23,7 +23,7 @@ func Activate(c *gin.Context) {
 		Type:  models.TokenUserActivation,
 	}
 
-	db := config.LairInstance().GetDb()
+	db := infra.LairInstance().GetDb()
 
 	res := db.Where(&activationToken).First(&activationToken)
 	if res.Error != nil {

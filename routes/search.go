@@ -8,7 +8,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/uberswe/golang-base-project/config"
+	"github.com/uberswe/golang-base-project/infra"
 	"github.com/uberswe/golang-base-project/models"
 )
 
@@ -50,7 +50,7 @@ func Search(c *gin.Context) {
 	search2 := fmt.Sprintf("%s%s", "%", search)
 	search4 := fmt.Sprintf("%s%s", search, "%")
 
-	db := config.LairInstance().GetDb()
+	db := infra.LairInstance().GetDb()
 
 	res := db.
 		Raw(fmt.Sprintf("SELECT * FROM websites WHERE title LIKE ? OR description LIKE ? ORDER BY CASE WHEN title LIKE ? OR description LIKE ? THEN 1 WHEN title LIKE ? OR description LIKE ? THEN 2 WHEN title LIKE ? OR description LIKE ? THEN 4 ELSE 3 END LIMIT %d OFFSET %d", resultsPerPage, resultsPerPage*(page-1)), searchFilter, searchFilter, search, search, search2, search2, search4, search4).

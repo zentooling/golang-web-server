@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/uberswe/golang-base-project/config"
 	email2 "github.com/uberswe/golang-base-project/email"
+	"github.com/uberswe/golang-base-project/infra"
 	"github.com/uberswe/golang-base-project/models"
 	"github.com/uberswe/golang-base-project/ulid"
 	"gorm.io/gorm"
@@ -28,7 +28,7 @@ func ForgotPasswordPost(c *gin.Context) {
 	pd := DefaultPageData(c)
 	pd.Title = pd.Trans("Forgot Password")
 
-	db := config.LairInstance().GetDb()
+	db := infra.LairInstance().GetDb()
 
 	email := c.PostForm("email")
 	user := models.User{Email: email}
@@ -52,7 +52,7 @@ func forgotPasswordEmailHandler(userID uint, email string, trans func(string) st
 		Type:  models.TokenPasswordReset,
 	}
 
-	db := config.LairInstance().GetDb()
+	db := infra.LairInstance().GetDb()
 
 	res := db.Where(&forgotPasswordToken).First(&forgotPasswordToken)
 	if (res.Error != nil && res.Error != gorm.ErrRecordNotFound) || res.RowsAffected > 0 {
@@ -75,7 +75,7 @@ func forgotPasswordEmailHandler(userID uint, email string, trans func(string) st
 }
 
 func sendForgotPasswordEmail(token string, email string, trans func(string) string) {
-	conf := config.LairInstance().GetConfig()
+	conf := infra.LairInstance().GetConfig()
 	u, err := url.Parse(conf.BaseURL)
 	if err != nil {
 		slog.Error("sendForgetPasswordEmail", "error", err)

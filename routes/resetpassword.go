@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/uberswe/golang-base-project/config"
+	"github.com/uberswe/golang-base-project/infra"
 	"github.com/uberswe/golang-base-project/models"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -56,7 +56,7 @@ func ResetPasswordPost(c *gin.Context) {
 		Type:  models.TokenPasswordReset,
 	}
 
-	db := config.LairInstance().GetDb()
+	db := infra.LairInstance().GetDb()
 
 	res := db.Where(&forgotPasswordToken).First(&forgotPasswordToken)
 	if res.Error != nil {
