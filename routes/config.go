@@ -24,7 +24,7 @@ func ConfigRouteHandler(c *gin.Context) {
 	cd := ConfigPageData{
 		PageData: pd,
 		Config:   infra.LairInstance().GetConfig(),
-		LogLevel: currentLevel.String(),
+		LogLevel: currentLevel.Level().String(),
 	}
 
 	c.HTML(http.StatusOK, "config.html", cd)
