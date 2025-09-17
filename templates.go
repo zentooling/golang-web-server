@@ -3,34 +3,35 @@ package baseproject
 
 import (
 	"html/template"
+	"io"
 	"io/fs"
-	"io/ioutil"
 	"strings"
 )
 
 func loadTemplates() (*template.Template, error) {
 	var err4 error
-	t := template.New("")
-	err := fs.WalkDir(staticFS, ".", func(path string, d fs.DirEntry, err error) error {
-		if d.IsDir() {
+	templ := template.New("")
+	err := fs.WalkDir(staticFS, ".", func(path string, dirEntry fs.DirEntry, err error) error {
+		if dirEntry.IsDir() {
 			return nil
 		}
-		f, err2 := staticFS.Open(path)
+		file, err2 := staticFS.Open(path)
 		if err2 != nil {
 			return err2
 		}
-		h, err3 := ioutil.ReadAll(f)
+		contents, err3 := io.ReadAll(file)
 		if err3 != nil {
 			return err3
 		}
 		parts := strings.Split(path, "/")
-		if len(parts) > 0 && strings.HasSuffix(parts[len(parts)-1], ".html") {
-			t, err4 = t.New(parts[len(parts)-1]).Parse(string(h))
+		if len(parts) > 0 && strings.HasSuffix(parts[len(parts)-1], ".gohtml") {
+			lastPart := parts[len(parts)-1]
+			templ, err4 = templ.New(lastPart).Parse(string(contents))
 			if err4 != nil {
 				return err4
 			}
 		}
 		return nil
 	})
-	return t, err
+	return templ, err
 }

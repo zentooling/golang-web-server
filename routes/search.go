@@ -62,7 +62,7 @@ func Search(c *gin.Context) {
 			Content: pdS.Trans("No results found"),
 		})
 		slog.Error("Search", "error", res.Error)
-		c.HTML(http.StatusOK, "search.html", pd)
+		c.HTML(http.StatusOK, "search.gohtml", pd)
 		return
 	}
 
@@ -76,5 +76,5 @@ func Search(c *gin.Context) {
 		pd.PrevURL = fmt.Sprintf("/search/%d/%s", page-1, url.QueryEscape(search))
 	}
 
-	c.HTML(http.StatusOK, "search.html", pd)
+	c.HTML(http.StatusOK, "search.gohtml", pd)
 }

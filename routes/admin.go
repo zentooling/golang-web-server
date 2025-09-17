@@ -70,7 +70,7 @@ func Admin(c *gin.Context) {
 			Content: "Something went wrong while fetching user data",
 		})
 		slog.Error("Admin:DB", "error", res.Error)
-		c.HTML(http.StatusInternalServerError, "admin.html", ad)
+		c.HTML(http.StatusInternalServerError, "admin.gohtml", ad)
 		return
 	}
 
@@ -172,5 +172,5 @@ func Admin(c *gin.Context) {
 
 	// The chart is inverted so we need to subtract the base value to our calculated values
 
-	c.HTML(http.StatusOK, "admin.html", ad)
+	c.HTML(http.StatusOK, "admin.gohtml", ad)
 }

@@ -20,7 +20,7 @@ import (
 func ForgotPassword(c *gin.Context) {
 	pd := DefaultPageData(c)
 	pd.Title = pd.Trans("Forgot Password")
-	c.HTML(http.StatusOK, "forgotpassword.html", pd)
+	c.HTML(http.StatusOK, "forgotpassword.gohtml", pd)
 }
 
 // ForgotPasswordPost handles the POST request which requests a password reset and then renders the HTML page with the appropriate message
@@ -43,7 +43,7 @@ func ForgotPasswordPost(c *gin.Context) {
 	})
 
 	// We always return a positive response here to prevent user enumeration
-	c.HTML(http.StatusOK, "forgotpassword.html", pd)
+	c.HTML(http.StatusOK, "forgotpassword.gohtml", pd)
 }
 
 func forgotPasswordEmailHandler(userID uint, email string, trans func(string) string) {

@@ -70,5 +70,5 @@ func Loglevel(c *gin.Context) {
 		Content: pd.Trans("Logging level set to ") + token,
 	})
 
-	c.HTML(http.StatusOK, "loglevel.html", pd)
+	c.HTML(http.StatusOK, "loglevel.gohtml", pd)
 }

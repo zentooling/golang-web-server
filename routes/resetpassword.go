@@ -25,7 +25,7 @@ func ResetPassword(c *gin.Context) {
 		PageData: pdPre,
 		Token:    token,
 	}
-	c.HTML(http.StatusOK, "resetpassword.html", pd)
+	c.HTML(http.StatusOK, "resetpassword.gohtml", pd)
 }
 
 // ResetPasswordPost handles post request used to reset users passwords
@@ -47,7 +47,7 @@ func ResetPasswordPost(c *gin.Context) {
 			Type:    "error",
 			Content: passwordError,
 		})
-		c.HTML(http.StatusBadRequest, "resetpassword.html", pd)
+		c.HTML(http.StatusBadRequest, "resetpassword.gohtml", pd)
 		return
 	}
 
@@ -64,7 +64,7 @@ func ResetPasswordPost(c *gin.Context) {
 			Type:    "error",
 			Content: resetError,
 		})
-		c.HTML(http.StatusBadRequest, "resetpassword.html", pd)
+		c.HTML(http.StatusBadRequest, "resetpassword.gohtml", pd)
 		return
 	}
 
@@ -73,7 +73,7 @@ func ResetPasswordPost(c *gin.Context) {
 			Type:    "error",
 			Content: resetError,
 		})
-		c.HTML(http.StatusBadRequest, "resetpassword.html", pd)
+		c.HTML(http.StatusBadRequest, "resetpassword.gohtml", pd)
 		return
 	}
 
@@ -85,7 +85,7 @@ func ResetPasswordPost(c *gin.Context) {
 			Type:    "error",
 			Content: resetError,
 		})
-		c.HTML(http.StatusBadRequest, "resetpassword.html", pd)
+		c.HTML(http.StatusBadRequest, "resetpassword.gohtml", pd)
 		return
 	}
 
@@ -97,7 +97,7 @@ func ResetPasswordPost(c *gin.Context) {
 			Type:    "error",
 			Content: resetError,
 		})
-		c.HTML(http.StatusBadRequest, "resetpassword.html", pd)
+		c.HTML(http.StatusBadRequest, "resetpassword.gohtml", pd)
 		return
 	}
 
@@ -109,7 +109,7 @@ func ResetPasswordPost(c *gin.Context) {
 			Type:    "error",
 			Content: resetError,
 		})
-		c.HTML(http.StatusBadRequest, "resetpassword.html", pd)
+		c.HTML(http.StatusBadRequest, "resetpassword.gohtml", pd)
 		return
 	}
 
@@ -119,7 +119,7 @@ func ResetPasswordPost(c *gin.Context) {
 			Type:    "error",
 			Content: resetError,
 		})
-		c.HTML(http.StatusBadRequest, "resetpassword.html", pd)
+		c.HTML(http.StatusBadRequest, "resetpassword.gohtml", pd)
 		return
 	}
 
@@ -128,5 +128,5 @@ func ResetPasswordPost(c *gin.Context) {
 		Content: pdPre.Trans("Your password has successfully been reset."),
 	})
 
-	c.HTML(http.StatusOK, "resetpassword.html", pd)
+	c.HTML(http.StatusOK, "resetpassword.gohtml", pd)
 }

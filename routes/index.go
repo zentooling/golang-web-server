@@ -10,5 +10,5 @@ import (
 func Index(c *gin.Context) {
 	pd := DefaultPageData(c)
 	pd.Title = pd.Trans("Home")
-	c.HTML(http.StatusOK, "index.html", pd)
+	c.HTML(http.StatusOK, "index.gohtml", pd)
 }

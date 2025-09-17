@@ -13,7 +13,7 @@ import (
 func ResendActivation(c *gin.Context) {
 	pd := DefaultPageData(c)
 	pd.Title = pd.Trans("Resend Activation Email")
-	c.HTML(http.StatusOK, "resendactivation.html", pd)
+	c.HTML(http.StatusOK, "resendactivation.gohtml", pd)
 }
 
 // ResendActivationPost handles the post request for requesting a new activation email
@@ -47,5 +47,5 @@ func ResendActivationPost(c *gin.Context) {
 		Type:    "success",
 		Content: pd.Trans("A new activation email has been sent if the account exists and is not already activated. Please remember to check your spam inbox in case the email is not showing in your inbox."),
 	})
-	c.HTML(http.StatusOK, "resendactivation.html", pd)
+	c.HTML(http.StatusOK, "resendactivation.gohtml", pd)
 }

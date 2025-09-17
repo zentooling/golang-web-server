@@ -10,5 +10,5 @@ import (
 func NoRoute(c *gin.Context) {
 	pd := DefaultPageData(c)
 	pd.Title = pd.Trans("404 Not Found")
-	c.HTML(http.StatusOK, "404.html", pd)
+	c.HTML(http.StatusOK, "404.gohtml", pd)
 }

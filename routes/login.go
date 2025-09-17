@@ -17,7 +17,7 @@ import (
 func Login(c *gin.Context) {
 	pd := DefaultPageData(c)
 	pd.Title = pd.Trans("Login")
-	c.HTML(http.StatusOK, "login.html", pd)
+	c.HTML(http.StatusOK, "login.gohtml", pd)
 }
 
 // LoginPost handles login requests and returns the appropriate HTML and messages
@@ -38,7 +38,7 @@ func LoginPost(c *gin.Context) {
 			Content: loginError,
 		})
 		slog.Error("LoginPost", "error", res.Error)
-		c.HTML(http.StatusInternalServerError, "login.html", pd)
+		c.HTML(http.StatusInternalServerError, "login.gohtml", pd)
 		return
 	}
 
@@ -47,7 +47,7 @@ func LoginPost(c *gin.Context) {
 			Type:    "error",
 			Content: loginError,
 		})
-		c.HTML(http.StatusBadRequest, "login.html", pd)
+		c.HTML(http.StatusBadRequest, "login.gohtml", pd)
 		return
 	}
 
@@ -56,7 +56,7 @@ func LoginPost(c *gin.Context) {
 			Type:    "error",
 			Content: pd.Trans("Account is not activated yet."),
 		})
-		c.HTML(http.StatusBadRequest, "login.html", pd)
+		c.HTML(http.StatusBadRequest, "login.gohtml", pd)
 		return
 	}
 
@@ -67,7 +67,7 @@ func LoginPost(c *gin.Context) {
 			Type:    "error",
 			Content: loginError,
 		})
-		c.HTML(http.StatusBadRequest, "login.html", pd)
+		c.HTML(http.StatusBadRequest, "login.gohtml", pd)
 		return
 	}
 
@@ -89,7 +89,7 @@ func LoginPost(c *gin.Context) {
 			Content: loginError,
 		})
 		slog.Error("LoginPost", "error", res.Error)
-		c.HTML(http.StatusInternalServerError, "login.html", pd)
+		c.HTML(http.StatusInternalServerError, "login.gohtml", pd)
 		return
 	}
 
@@ -104,7 +104,7 @@ func LoginPost(c *gin.Context) {
 			Content: loginError,
 		})
 		slog.Error("LoginPost", "error", err)
-		c.HTML(http.StatusInternalServerError, "login.html", pd)
+		c.HTML(http.StatusInternalServerError, "login.gohtml", pd)
 		return
 	}
 

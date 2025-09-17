@@ -22,7 +22,7 @@ import (
 func Register(c *gin.Context) {
 	pd := DefaultPageData(c)
 	pd.Title = pd.Trans("Register")
-	c.HTML(http.StatusOK, "register.html", pd)
+	c.HTML(http.StatusOK, "register.gohtml", pd)
 }
 
 // RegisterPost handles requests to register users and returns appropriate messages as HTML content
@@ -38,7 +38,7 @@ func RegisterPost(c *gin.Context) {
 			Type:    "error",
 			Content: passwordError,
 		})
-		c.HTML(http.StatusBadRequest, "register.html", pd)
+		c.HTML(http.StatusBadRequest, "register.gohtml", pd)
 		return
 	}
 
@@ -50,7 +50,7 @@ func RegisterPost(c *gin.Context) {
 			Content: registerError,
 		})
 		slog.Error("RegisterPost:GenerateFromPassword", "error", err)
-		c.HTML(http.StatusInternalServerError, "register.html", pd)
+		c.HTML(http.StatusInternalServerError, "register.gohtml", pd)
 		return
 	}
 
@@ -67,7 +67,7 @@ func RegisterPost(c *gin.Context) {
 			Content: registerError,
 		})
 		slog.Error("RegisterPost:Validate", "error", err)
-		c.HTML(http.StatusInternalServerError, "register.html", pd)
+		c.HTML(http.StatusInternalServerError, "register.gohtml", pd)
 		return
 	}
 
@@ -82,7 +82,7 @@ func RegisterPost(c *gin.Context) {
 			Content: registerError,
 		})
 		slog.Error("RegisterPost", "error", res.Error)
-		c.HTML(http.StatusInternalServerError, "register.html", pd)
+		c.HTML(http.StatusInternalServerError, "register.gohtml", pd)
 		return
 	}
 
@@ -95,7 +95,7 @@ func RegisterPost(c *gin.Context) {
 			Content: registerError,
 		})
 		slog.Error("Register:SaveUser", "error", res.Error)
-		c.HTML(http.StatusInternalServerError, "register.html", pd)
+		c.HTML(http.StatusInternalServerError, "register.gohtml", pd)
 		return
 	}
 
@@ -107,7 +107,7 @@ func RegisterPost(c *gin.Context) {
 		Content: registerSuccess,
 	})
 
-	c.HTML(http.StatusOK, "register.html", pd)
+	c.HTML(http.StatusOK, "register.gohtml", pd)
 }
 
 func activationEmailHandler(userID uint, email string, trans func(string) string) {

@@ -32,7 +32,7 @@ func Activate(c *gin.Context) {
 			Content: activationError,
 		})
 		slog.Error("Activate:TokenNotFound", "error", res.Error)
-		c.HTML(http.StatusBadRequest, "activate.html", pd)
+		c.HTML(http.StatusBadRequest, "activate.gohtml", pd)
 		return
 	}
 
@@ -42,7 +42,7 @@ func Activate(c *gin.Context) {
 			Content: activationError,
 		})
 		slog.Info("Activate:TokenHasExpired", "error", res.Error)
-		c.HTML(http.StatusBadRequest, "activate.html", pd)
+		c.HTML(http.StatusBadRequest, "activate.gohtml", pd)
 		return
 	}
 
@@ -56,7 +56,7 @@ func Activate(c *gin.Context) {
 			Content: activationError,
 		})
 		slog.Error("Activate:UserNotFound", "error", res.Error)
-		c.HTML(http.StatusBadRequest, "activate.html", pd)
+		c.HTML(http.StatusBadRequest, "activate.gohtml", pd)
 		return
 	}
 
@@ -70,7 +70,7 @@ func Activate(c *gin.Context) {
 			Content: activationError,
 		})
 		slog.Error("Activate:SaveUser", "error", res.Error)
-		c.HTML(http.StatusBadRequest, "activate.html", pd)
+		c.HTML(http.StatusBadRequest, "activate.gohtml", pd)
 		return
 	}
 
@@ -82,5 +82,5 @@ func Activate(c *gin.Context) {
 		Content: activationSuccess,
 	})
 	slog.Info("Activate:Success", "token", activationToken.Value)
-	c.HTML(http.StatusOK, "activate.html", pd)
+	c.HTML(http.StatusOK, "activate.gohtml", pd)
 }
