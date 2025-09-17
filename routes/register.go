@@ -34,10 +34,7 @@ func RegisterPost(c *gin.Context) {
 	pd.Title = pd.Trans("Register")
 	password := c.PostForm("password")
 	if len(password) < 8 {
-		pd.Messages = append(pd.Messages, Message{
-			Type:    "error",
-			Content: passwordError,
-		})
+		pd.AddMessage(Error, passwordError)
 		c.HTML(http.StatusBadRequest, "register.gohtml", pd)
 		return
 	}
@@ -45,10 +42,7 @@ func RegisterPost(c *gin.Context) {
 	// The password is hashed as early as possible to make timing attacks that reveal registered users harder
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		pd.Messages = append(pd.Messages, Message{
-			Type:    "error",
-			Content: registerError,
-		})
+		pd.AddMessage(Error, registerError)
 		slog.Error("RegisterPost:GenerateFromPassword", "error", err)
 		c.HTML(http.StatusInternalServerError, "register.gohtml", pd)
 		return
@@ -62,10 +56,7 @@ func RegisterPost(c *gin.Context) {
 	err = validate.Var(email, "required,email")
 
 	if err != nil {
-		pd.Messages = append(pd.Messages, Message{
-			Type:    "error",
-			Content: registerError,
-		})
+		pd.AddMessage(Error, registerError)
 		slog.Error("RegisterPost:Validate", "error", err)
 		c.HTML(http.StatusInternalServerError, "register.gohtml", pd)
 		return
@@ -77,10 +68,7 @@ func RegisterPost(c *gin.Context) {
 
 	res := db.Where(&user).First(&user)
 	if (res.Error != nil && res.Error != gorm.ErrRecordNotFound) || res.RowsAffected > 0 {
-		pd.Messages = append(pd.Messages, Message{
-			Type:    "error",
-			Content: registerError,
-		})
+		pd.AddMessage(Error, registerError)
 		slog.Error("RegisterPost", "error", res.Error)
 		c.HTML(http.StatusInternalServerError, "register.gohtml", pd)
 		return
@@ -90,10 +78,7 @@ func RegisterPost(c *gin.Context) {
 
 	res = db.Save(&user)
 	if res.Error != nil || res.RowsAffected == 0 {
-		pd.Messages = append(pd.Messages, Message{
-			Type:    "error",
-			Content: registerError,
-		})
+		pd.AddMessage(Error, registerError)
 		slog.Error("Register:SaveUser", "error", res.Error)
 		c.HTML(http.StatusInternalServerError, "register.gohtml", pd)
 		return
@@ -102,10 +87,7 @@ func RegisterPost(c *gin.Context) {
 	// Generate activation token and send activation email
 	go activationEmailHandler(user.ID, email, pd.Trans)
 
-	pd.Messages = append(pd.Messages, Message{
-		Type:    "success",
-		Content: registerSuccess,
-	})
+	pd.AddMessage(Success, registerSuccess)
 
 	c.HTML(http.StatusOK, "register.gohtml", pd)
 }

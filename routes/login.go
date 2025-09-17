@@ -33,29 +33,20 @@ func LoginPost(c *gin.Context) {
 
 	res := db.Where(&user).First(&user)
 	if res.Error != nil {
-		pd.Messages = append(pd.Messages, Message{
-			Type:    "error",
-			Content: loginError,
-		})
+		pd.AddMessage(Error, loginError)
 		slog.Error("LoginPost", "error", res.Error)
 		c.HTML(http.StatusInternalServerError, "login.gohtml", pd)
 		return
 	}
 
 	if res.RowsAffected == 0 {
-		pd.Messages = append(pd.Messages, Message{
-			Type:    "error",
-			Content: loginError,
-		})
+		pd.AddMessage(Error, loginError)
 		c.HTML(http.StatusBadRequest, "login.gohtml", pd)
 		return
 	}
 
 	if user.ActivatedAt == nil {
-		pd.Messages = append(pd.Messages, Message{
-			Type:    "error",
-			Content: pd.Trans("Account is not activated yet."),
-		})
+		pd.AddMessage(Error, pd.Trans("Account is not activated yet."))
 		c.HTML(http.StatusBadRequest, "login.gohtml", pd)
 		return
 	}
@@ -63,10 +54,7 @@ func LoginPost(c *gin.Context) {
 	password := c.PostForm("password")
 	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
-		pd.Messages = append(pd.Messages, Message{
-			Type:    "error",
-			Content: loginError,
-		})
+		pd.AddMessage(Error, loginError)
 		c.HTML(http.StatusBadRequest, "login.gohtml", pd)
 		return
 	}
@@ -84,10 +72,7 @@ func LoginPost(c *gin.Context) {
 
 	res = db.Save(&ses)
 	if res.Error != nil {
-		pd.Messages = append(pd.Messages, Message{
-			Type:    "error",
-			Content: loginError,
-		})
+		pd.AddMessage(Error, loginError)
 		slog.Error("LoginPost", "error", res.Error)
 		c.HTML(http.StatusInternalServerError, "login.gohtml", pd)
 		return
@@ -99,10 +84,7 @@ func LoginPost(c *gin.Context) {
 
 	err = session.Save()
 	if err != nil {
-		pd.Messages = append(pd.Messages, Message{
-			Type:    "error",
-			Content: loginError,
-		})
+		pd.AddMessage(Error, loginError)
 		slog.Error("LoginPost", "error", err)
 		c.HTML(http.StatusInternalServerError, "login.gohtml", pd)
 		return

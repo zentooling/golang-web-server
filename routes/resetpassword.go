@@ -43,10 +43,7 @@ func ResetPasswordPost(c *gin.Context) {
 	password := c.PostForm("password")
 
 	if len(password) < 8 {
-		pd.Messages = append(pd.Messages, Message{
-			Type:    "error",
-			Content: passwordError,
-		})
+		pd.AddMessage(Error, passwordError)
 		c.HTML(http.StatusBadRequest, "resetpassword.gohtml", pd)
 		return
 	}
@@ -60,19 +57,13 @@ func ResetPasswordPost(c *gin.Context) {
 
 	res := db.Where(&forgotPasswordToken).First(&forgotPasswordToken)
 	if res.Error != nil {
-		pd.Messages = append(pd.Messages, Message{
-			Type:    "error",
-			Content: resetError,
-		})
+		pd.AddMessage(Error, resetError)
 		c.HTML(http.StatusBadRequest, "resetpassword.gohtml", pd)
 		return
 	}
 
 	if forgotPasswordToken.HasExpired() {
-		pd.Messages = append(pd.Messages, Message{
-			Type:    "error",
-			Content: resetError,
-		})
+		pd.AddMessage(Error, resetError)
 		c.HTML(http.StatusBadRequest, "resetpassword.gohtml", pd)
 		return
 	}
@@ -81,10 +72,7 @@ func ResetPasswordPost(c *gin.Context) {
 	user.ID = uint(forgotPasswordToken.ModelID)
 	res = db.Where(&user).First(&user)
 	if res.Error != nil {
-		pd.Messages = append(pd.Messages, Message{
-			Type:    "error",
-			Content: resetError,
-		})
+		pd.AddMessage(Error, resetError)
 		c.HTML(http.StatusBadRequest, "resetpassword.gohtml", pd)
 		return
 	}
@@ -93,10 +81,7 @@ func ResetPasswordPost(c *gin.Context) {
 
 	if err != nil {
 		slog.Error("ResetPasswordPost", "error", err)
-		pd.Messages = append(pd.Messages, Message{
-			Type:    "error",
-			Content: resetError,
-		})
+		pd.AddMessage(Error, resetError)
 		c.HTML(http.StatusBadRequest, "resetpassword.gohtml", pd)
 		return
 	}
@@ -105,28 +90,19 @@ func ResetPasswordPost(c *gin.Context) {
 
 	res = db.Save(&user)
 	if res.Error != nil {
-		pd.Messages = append(pd.Messages, Message{
-			Type:    "error",
-			Content: resetError,
-		})
+		pd.AddMessage(Error, resetError)
 		c.HTML(http.StatusBadRequest, "resetpassword.gohtml", pd)
 		return
 	}
 
 	res = db.Delete(&forgotPasswordToken)
 	if res.Error != nil {
-		pd.Messages = append(pd.Messages, Message{
-			Type:    "error",
-			Content: resetError,
-		})
+		pd.AddMessage(Error, resetError)
 		c.HTML(http.StatusBadRequest, "resetpassword.gohtml", pd)
 		return
 	}
 
-	pd.Messages = append(pd.Messages, Message{
-		Type:    "success",
-		Content: pdPre.Trans("Your password has successfully been reset."),
-	})
+	pd.AddMessage(Success, pd.Trans("Your password has been reset successfully."))
 
 	c.HTML(http.StatusOK, "resetpassword.gohtml", pd)
 }

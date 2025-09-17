@@ -65,10 +65,7 @@ func Loglevel(c *gin.Context) {
 	slog.Warn("log at warn level")
 	slog.Debug("Run", "config", infra.LairInstance().GetConfig())
 
-	pd.Messages = append(pd.Messages, Message{
-		Type:    "success",
-		Content: pd.Trans("Logging level set to ") + token,
-	})
+	pd.AddMessage(Success, pd.Trans("Logging level set to ")+token)
 
 	c.HTML(http.StatusOK, "loglevel.gohtml", pd)
 }

@@ -27,20 +27,14 @@ func Activate(c *gin.Context) {
 
 	res := db.Where(&activationToken).First(&activationToken)
 	if res.Error != nil {
-		pd.Messages = append(pd.Messages, Message{
-			Type:    "error",
-			Content: activationError,
-		})
+		pd.AddMessage(Error, activationError)
 		slog.Error("Activate:TokenNotFound", "error", res.Error)
 		c.HTML(http.StatusBadRequest, "activate.gohtml", pd)
 		return
 	}
 
 	if activationToken.HasExpired() {
-		pd.Messages = append(pd.Messages, Message{
-			Type:    "error",
-			Content: activationError,
-		})
+		pd.AddMessage(Error, activationError)
 		slog.Info("Activate:TokenHasExpired", "error", res.Error)
 		c.HTML(http.StatusBadRequest, "activate.gohtml", pd)
 		return
@@ -51,10 +45,7 @@ func Activate(c *gin.Context) {
 
 	res = db.Where(&user).First(&user)
 	if res.Error != nil {
-		pd.Messages = append(pd.Messages, Message{
-			Type:    "error",
-			Content: activationError,
-		})
+		pd.AddMessage(Error, activationError)
 		slog.Error("Activate:UserNotFound", "error", res.Error)
 		c.HTML(http.StatusBadRequest, "activate.gohtml", pd)
 		return
@@ -65,10 +56,7 @@ func Activate(c *gin.Context) {
 
 	res = db.Save(&user)
 	if res.Error != nil {
-		pd.Messages = append(pd.Messages, Message{
-			Type:    "error",
-			Content: activationError,
-		})
+		pd.AddMessage(Error, activationError)
 		slog.Error("Activate:SaveUser", "error", res.Error)
 		c.HTML(http.StatusBadRequest, "activate.gohtml", pd)
 		return
@@ -77,10 +65,7 @@ func Activate(c *gin.Context) {
 	// We don't need to check for an error here, even if it's not deleted it will not really affect application logic
 	db.Delete(&activationToken)
 
-	pd.Messages = append(pd.Messages, Message{
-		Type:    "success",
-		Content: activationSuccess,
-	})
+	pd.AddMessage(Success, activationSuccess)
 	slog.Info("Activate:Success", "token", activationToken.Value)
 	c.HTML(http.StatusOK, "activate.gohtml", pd)
 }

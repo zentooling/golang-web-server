@@ -4,7 +4,6 @@ package routes
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/uberswe/golang-base-project/infra"
-
 	// "github.com/uberswe/golang-base-project/config"
 
 	"github.com/uberswe/golang-base-project/middleware"
@@ -19,9 +18,41 @@ type PageData struct {
 	Trans           func(s string) string
 }
 
+// Define an enum using iota
+type MessageType int
+
+const (
+	Error MessageType = iota
+	Warning
+	Info
+	Success
+)
+
+// Map for string representation
+var messageTypeNames = map[MessageType]string{
+	Error:   "error",
+	Warning: "warning",
+	Info:    "info",
+	Success: "success",
+}
+
+func (pd *PageData) AddMessage(msgType MessageType, content string) {
+	pd.Messages = append(pd.Messages, Message{
+		Type:    msgType,
+		Content: content,
+	})
+}
+
+func (c MessageType) String() string {
+	if name, ok := messageTypeNames[c]; ok {
+		return name
+	}
+	return "Unknown"
+}
+
 // Message holds a message which can be rendered as responses on HTML pages
 type Message struct {
-	Type    string // success, warning, error, etc.
+	Type    MessageType // success, warning, error, etc.
 	Content string
 }
 
@@ -29,6 +60,14 @@ type Message struct {
 func isAuthenticated(c *gin.Context) bool {
 	_, exists := c.Get(middleware.UserIDKey)
 	return exists
+}
+
+func getUserId(c *gin.Context) uint {
+	id, exists := c.Get(middleware.UserIDKey)
+	if exists {
+		return id.(uint)
+	}
+	return 0
 }
 
 func DefaultPageData(c *gin.Context) PageData {

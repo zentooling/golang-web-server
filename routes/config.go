@@ -51,106 +51,83 @@ func LoggingRouteHandlerPost(c *gin.Context) {
 	// read updated state
 	pd := pageData(c)
 	pd.Title = pd.Trans("Configuration")
-	pd.Messages = append(pd.Messages, Message{
-		Type:    "success",
-		Content: pd.Trans("Logging level set to " + levelStr),
-	})
+	pd.AddMessage(Success, pd.Trans("Logging level set to "+levelStr))
 
 	c.HTML(http.StatusOK, "config.gohtml", pd)
 }
 
 func ConfigRouteHandlerPost(c *gin.Context) {
 
-	// this points to config struct so changes are for duration of this process
+	pd := pageData(c)
+	pd.Title = pd.Trans("Configuration")
+	// this points to config struct so changes are 'persistent'
 	prevCfg := infra.LairInstance().GetConfig()
-
-	dirty := false
 
 	newValue := c.PostForm("base_url")
 	if newValue != prevCfg.BaseURL {
 		slog.Info("BaseUrl", "newValue", newValue)
 		prevCfg.BaseURL = newValue
-		dirty = true
+		pd.AddMessage(Success, pd.Trans("Base URL changed"))
 	}
 	newValue = c.PostForm("smtp_host")
 	if newValue != prevCfg.SMTPHost {
 		slog.Info("SmtpHost", "newValue", newValue)
 		prevCfg.SMTPHost = newValue
-		dirty = true
+		pd.AddMessage(Success, pd.Trans("SMTP host changed"))
 	}
 	newValue = c.PostForm("smtp_port")
 	if newValue != prevCfg.SMTPPort {
 		slog.Info("SMTPPort", "newValue", newValue)
 		prevCfg.SMTPPort = newValue
-		dirty = true
+		pd.AddMessage(Success, pd.Trans("SMTP port changed"))
 	}
 	newValue = c.PostForm("smtp_sender")
 	if newValue != prevCfg.SMTPSender {
 		slog.Info("SMTPSender", "newValue", newValue)
 		prevCfg.SMTPSender = newValue
-		dirty = true
+		pd.AddMessage(Success, pd.Trans("SMTP sender changed"))
 	}
 	newValue = c.PostForm("smtp_username")
 	if newValue != prevCfg.SMTPUsername {
 		slog.Info("SMTPUsername", "newValue", newValue)
 		prevCfg.SMTPUsername = newValue
-		dirty = true
+		pd.AddMessage(Success, pd.Trans("SMTP username changed"))
 	}
 	newValue = c.PostForm("smtp_password")
 	if newValue != prevCfg.SMTPPassword {
 		slog.Info("SMTPPassword", "newValue", newValue)
 		prevCfg.SMTPPassword = newValue
-		dirty = true
+		pd.AddMessage(Success, pd.Trans("SMTP password changed"))
 	}
 	newValue = c.PostForm("request_per_minute")
 	newValueInt, err := strconv.Atoi(newValue)
 
-	messages := make([]Message, 0)
-
 	if err != nil {
-		messages = append(messages, Message{
-			Type:    "error",
-			Content: err.Error(),
-		})
-	}
-
-	if err == nil && newValueInt != prevCfg.RequestsPerMinute {
+		pd.AddMessage(Error, "Can't convert to integer: "+newValue)
+	} else if newValueInt != prevCfg.RequestsPerMinute {
 		slog.Info("RequestsPerMinute", "newValue", newValue)
 		prevCfg.RequestsPerMinute = newValueInt
-		dirty = true
+		pd.AddMessage(Success, pd.Trans("RequestsPerMinute changed"))
 	}
 	newValue = c.PostForm("cache_parameter")
 	if newValue != prevCfg.CacheParameter {
 		slog.Info("CacheParameter", "newValue", newValue)
 		prevCfg.CacheParameter = newValue
-		dirty = true
+		pd.AddMessage(Success, pd.Trans("Cache parameter changed"))
 	}
 	newValue = c.PostForm("cache_max_age")
 	// reuse from above
 	newValueInt, err = strconv.Atoi(newValue)
 	if err != nil {
-		messages = append(messages, Message{
-			Type:    "error",
-			Content: err.Error(),
-		})
-	}
-	if err == nil && newValueInt != prevCfg.CacheMaxAge {
+		pd.AddMessage(Error, "Can't convert to integer: "+newValue)
+	} else if newValueInt != prevCfg.CacheMaxAge {
 		slog.Info("CacheMaxAge", "newValue", newValue)
 		prevCfg.CacheMaxAge = newValueInt
-		dirty = true
-	}
-	if dirty {
-		messages = append(messages, Message{
-			Type:    "success",
-			Content: "Environment updated",
-		})
+		pd.AddMessage(Success, pd.Trans("Cache max age changed"))
 	}
 
-	// read updated state
-	pd := pageData(c)
-	pd.Title = pd.Trans("Configuration")
-	// add collected messages along the way
-	pd.Messages = messages
+	// refresh with new state
+	pd.Config = infra.LairInstance().GetConfig()
 
 	c.HTML(http.StatusOK, "config.gohtml", pd)
 }

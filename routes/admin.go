@@ -65,10 +65,7 @@ func Admin(c *gin.Context) {
 		Find(&msu)
 
 	if res.Error != nil && res.Error != gorm.ErrRecordNotFound {
-		pd.Messages = append(pd.Messages, Message{
-			Type:    "error",
-			Content: "Something went wrong while fetching user data",
-		})
+		pd.AddMessage(Error, "Something went wrong while fetching user data")
 		slog.Error("Admin:DB", "error", res.Error)
 		c.HTML(http.StatusInternalServerError, "admin.gohtml", ad)
 		return

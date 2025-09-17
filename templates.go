@@ -9,7 +9,7 @@ import (
 )
 
 func loadTemplates() (*template.Template, error) {
-	var err4 error
+	// var err4 error
 	templ := template.New("")
 	err := fs.WalkDir(staticFS, ".", func(path string, dirEntry fs.DirEntry, err error) error {
 		if dirEntry.IsDir() {
@@ -26,10 +26,11 @@ func loadTemplates() (*template.Template, error) {
 		parts := strings.Split(path, "/")
 		if len(parts) > 0 && strings.HasSuffix(parts[len(parts)-1], ".gohtml") {
 			lastPart := parts[len(parts)-1]
-			templ, err4 = templ.New(lastPart).Parse(string(contents))
-			if err4 != nil {
-				return err4
-			}
+			templ = template.Must(templ.New(lastPart).Parse(string(contents)))
+			//templ, err4 = templ.New(lastPart).Parse(string(contents))
+			//if err4 != nil {
+			//	return err4
+			//}
 		}
 		return nil
 	})

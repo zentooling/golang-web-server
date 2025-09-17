@@ -57,10 +57,7 @@ func Search(c *gin.Context) {
 		Find(&results)
 
 	if res.Error != nil || len(results) == 0 {
-		pd.Messages = append(pd.Messages, Message{
-			Type:    "error",
-			Content: pdS.Trans("No results found"),
-		})
+		pd.AddMessage(Error, pdS.Trans("No results found."))
 		slog.Error("Search", "error", res.Error)
 		c.HTML(http.StatusOK, "search.gohtml", pd)
 		return

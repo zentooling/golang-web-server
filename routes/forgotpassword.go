@@ -37,11 +37,7 @@ func ForgotPasswordPost(c *gin.Context) {
 		go forgotPasswordEmailHandler(user.ID, email, pd.Trans)
 	}
 
-	pd.Messages = append(pd.Messages, Message{
-		Type:    "success",
-		Content: pd.Trans("An email with instructions describing how to reset your password has been sent."),
-	})
-
+	pd.AddMessage(Success, pd.Trans("An email with instructions to reset password has been sent"))
 	// We always return a positive response here to prevent user enumeration
 	c.HTML(http.StatusOK, "forgotpassword.gohtml", pd)
 }
