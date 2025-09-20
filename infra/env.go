@@ -13,7 +13,7 @@ import (
 
 // TODO use proper singleton here
 // global access to app wide cfg
-var glair *Lair
+var glair Lair
 
 // Config defines all the configuration variables for the golang-base-project
 
@@ -37,7 +37,7 @@ func (l Lair) GetLoggingLevel() *slog.LevelVar { return l.leveler }
 
 func InitLair(db *gorm.DB, config *Config, bundle *i18n.Bundle, levelVar *slog.LevelVar) ILair {
 	// set the global - should be called once at startup
-	glair = &Lair{
+	glair = Lair{
 		db:      db,
 		config:  config,
 		bundle:  bundle,

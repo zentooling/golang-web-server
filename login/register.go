@@ -1,4 +1,4 @@
-package routes
+package login
 
 import (
 	"fmt"
@@ -11,30 +11,30 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	email2 "github.com/uberswe/golang-base-project/email"
-	"github.com/uberswe/golang-base-project/infra"
 	"github.com/uberswe/golang-base-project/models"
+	"github.com/uberswe/golang-base-project/routes"
 	"github.com/uberswe/golang-base-project/ulid"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
 // Register renders the HTML content of the register page
-func Register(c *gin.Context) {
-	pd := DefaultPageData(c)
+func (svc Service) Register(c *gin.Context) {
+	pd := routes.DefaultPageData(c, svc.env.GetBundle(), svc.env.GetConfig().CacheParameter)
 	pd.Title = pd.Trans("Register")
 	c.HTML(http.StatusOK, "register.gohtml", pd)
 }
 
 // RegisterPost handles requests to register users and returns appropriate messages as HTML content
-func RegisterPost(c *gin.Context) {
-	pd := DefaultPageData(c)
+func (svc Service) RegisterPost(c *gin.Context) {
+	pd := routes.DefaultPageData(c, svc.env.GetBundle(), svc.env.GetConfig().CacheParameter)
 	passwordError := pd.Trans("Your password must be 8 characters in length or longer")
 	registerError := pd.Trans("Could not register, please make sure the details you have provided are correct and that you do not already have an existing account.")
 	registerSuccess := pd.Trans("Thank you for registering. An activation email has been sent with steps describing how to activate your account.")
 	pd.Title = pd.Trans("Register")
 	password := c.PostForm("password")
 	if len(password) < 8 {
-		pd.AddMessage(Error, passwordError)
+		pd.AddMessage(routes.Error, passwordError)
 		c.HTML(http.StatusBadRequest, "register.gohtml", pd)
 		return
 	}
@@ -42,7 +42,7 @@ func RegisterPost(c *gin.Context) {
 	// The password is hashed as early as possible to make timing attacks that reveal registered users harder
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		pd.AddMessage(Error, registerError)
+		pd.AddMessage(routes.Error, registerError)
 		slog.Error("RegisterPost:GenerateFromPassword", "error", err)
 		c.HTML(http.StatusInternalServerError, "register.gohtml", pd)
 		return
@@ -56,7 +56,7 @@ func RegisterPost(c *gin.Context) {
 	err = validate.Var(email, "required,email")
 
 	if err != nil {
-		pd.AddMessage(Error, registerError)
+		pd.AddMessage(routes.Error, registerError)
 		slog.Error("RegisterPost:Validate", "error", err)
 		c.HTML(http.StatusInternalServerError, "register.gohtml", pd)
 		return
@@ -64,11 +64,11 @@ func RegisterPost(c *gin.Context) {
 
 	user := models.User{Email: email}
 
-	db := infra.LairInstance().GetDb()
+	db := svc.env.GetDb()
 
 	res := db.Where(&user).First(&user)
 	if (res.Error != nil && res.Error != gorm.ErrRecordNotFound) || res.RowsAffected > 0 {
-		pd.AddMessage(Error, registerError)
+		pd.AddMessage(routes.Error, registerError)
 		slog.Error("RegisterPost", "error", res.Error)
 		c.HTML(http.StatusInternalServerError, "register.gohtml", pd)
 		return
@@ -78,32 +78,32 @@ func RegisterPost(c *gin.Context) {
 
 	res = db.Save(&user)
 	if res.Error != nil || res.RowsAffected == 0 {
-		pd.AddMessage(Error, registerError)
+		pd.AddMessage(routes.Error, registerError)
 		slog.Error("Register:SaveUser", "error", res.Error)
 		c.HTML(http.StatusInternalServerError, "register.gohtml", pd)
 		return
 	}
 
 	// Generate activation token and send activation email
-	go activationEmailHandler(user.ID, email, pd.Trans)
+	go svc.activationEmailHandler(user.ID, email, pd.Trans)
 
-	pd.AddMessage(Success, registerSuccess)
+	pd.AddMessage(routes.Success, registerSuccess)
 
 	c.HTML(http.StatusOK, "register.gohtml", pd)
 }
 
-func activationEmailHandler(userID uint, email string, trans func(string) string) {
+func (svc Service) activationEmailHandler(userID uint, email string, trans func(string) string) {
 	activationToken := models.Token{
 		Value: ulid.Generate(),
 		Type:  models.TokenUserActivation,
 	}
 
-	db := infra.LairInstance().GetDb()
+	db := svc.env.GetDb()
 
 	res := db.Where(&activationToken).First(&activationToken)
 	if (res.Error != nil && res.Error != gorm.ErrRecordNotFound) || res.RowsAffected > 0 {
 		// If the activation token already exists we try to generate it again
-		activationEmailHandler(userID, email, trans)
+		svc.activationEmailHandler(userID, email, trans)
 		return
 	}
 
@@ -116,11 +116,11 @@ func activationEmailHandler(userID uint, email string, trans func(string) string
 		slog.Error("activationEmailHandler:Save", "error", res.Error)
 		return
 	}
-	sendActivationEmail(activationToken.Value, email, trans)
+	svc.sendActivationEmail(activationToken.Value, email, trans)
 }
 
-func sendActivationEmail(token string, email string, trans func(string) string) {
-	cfg := infra.LairInstance().GetConfig()
+func (svc Service) sendActivationEmail(token string, email string, trans func(string) string) {
+	cfg := svc.env.GetConfig()
 	u, err := url.Parse(cfg.BaseURL)
 	if err != nil {
 		slog.Error("activationEmailHandler:sendActivationEmail", "error", err)

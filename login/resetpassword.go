@@ -1,25 +1,25 @@
-package routes
+package login
 
 import (
 	"log/slog"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/uberswe/golang-base-project/infra"
 	"github.com/uberswe/golang-base-project/models"
+	"github.com/uberswe/golang-base-project/routes"
 	"golang.org/x/crypto/bcrypt"
 )
 
 // ResetPasswordPageData defines additional data needed to render the reset password page
 type ResetPasswordPageData struct {
-	PageData
+	routes.PageData
 	Token string
 }
 
 // ResetPassword renders the HTML page for resetting the users password
-func ResetPassword(c *gin.Context) {
+func (svc Service) ResetPassword(c *gin.Context) {
 	token := c.Param("token")
-	pdPre := DefaultPageData(c)
+	pdPre := routes.DefaultPageData(c, svc.env.GetBundle(), svc.env.GetConfig().CacheParameter)
 	pdPre.Title = pdPre.Trans("Reset Password")
 	pd := ResetPasswordPageData{
 		PageData: pdPre,
@@ -29,8 +29,8 @@ func ResetPassword(c *gin.Context) {
 }
 
 // ResetPasswordPost handles post request used to reset users passwords
-func ResetPasswordPost(c *gin.Context) {
-	pdPre := DefaultPageData(c)
+func (svc Service) ResetPasswordPost(c *gin.Context) {
+	pdPre := routes.DefaultPageData(c, svc.env.GetBundle(), svc.env.GetConfig().CacheParameter)
 	passwordError := pdPre.Trans("Your password must be 8 characters in length or longer")
 	resetError := pdPre.Trans("Could not reset password, please try again")
 
@@ -43,7 +43,7 @@ func ResetPasswordPost(c *gin.Context) {
 	password := c.PostForm("password")
 
 	if len(password) < 8 {
-		pd.AddMessage(Error, passwordError)
+		pd.AddMessage(routes.Error, passwordError)
 		c.HTML(http.StatusBadRequest, "resetpassword.gohtml", pd)
 		return
 	}
@@ -53,17 +53,17 @@ func ResetPasswordPost(c *gin.Context) {
 		Type:  models.TokenPasswordReset,
 	}
 
-	db := infra.LairInstance().GetDb()
+	db := svc.env.GetDb()
 
 	res := db.Where(&forgotPasswordToken).First(&forgotPasswordToken)
 	if res.Error != nil {
-		pd.AddMessage(Error, resetError)
+		pd.AddMessage(routes.Error, resetError)
 		c.HTML(http.StatusBadRequest, "resetpassword.gohtml", pd)
 		return
 	}
 
 	if forgotPasswordToken.HasExpired() {
-		pd.AddMessage(Error, resetError)
+		pd.AddMessage(routes.Error, resetError)
 		c.HTML(http.StatusBadRequest, "resetpassword.gohtml", pd)
 		return
 	}
@@ -72,7 +72,7 @@ func ResetPasswordPost(c *gin.Context) {
 	user.ID = uint(forgotPasswordToken.ModelID)
 	res = db.Where(&user).First(&user)
 	if res.Error != nil {
-		pd.AddMessage(Error, resetError)
+		pd.AddMessage(routes.Error, resetError)
 		c.HTML(http.StatusBadRequest, "resetpassword.gohtml", pd)
 		return
 	}
@@ -81,7 +81,7 @@ func ResetPasswordPost(c *gin.Context) {
 
 	if err != nil {
 		slog.Error("ResetPasswordPost", "error", err)
-		pd.AddMessage(Error, resetError)
+		pd.AddMessage(routes.Error, resetError)
 		c.HTML(http.StatusBadRequest, "resetpassword.gohtml", pd)
 		return
 	}
@@ -90,19 +90,19 @@ func ResetPasswordPost(c *gin.Context) {
 
 	res = db.Save(&user)
 	if res.Error != nil {
-		pd.AddMessage(Error, resetError)
+		pd.AddMessage(routes.Error, resetError)
 		c.HTML(http.StatusBadRequest, "resetpassword.gohtml", pd)
 		return
 	}
 
 	res = db.Delete(&forgotPasswordToken)
 	if res.Error != nil {
-		pd.AddMessage(Error, resetError)
+		pd.AddMessage(routes.Error, resetError)
 		c.HTML(http.StatusBadRequest, "resetpassword.gohtml", pd)
 		return
 	}
 
-	pd.AddMessage(Success, pd.Trans("Your password has been reset successfully."))
+	pd.AddMessage(routes.Success, pd.Trans("Your password has been reset successfully."))
 
 	c.HTML(http.StatusOK, "resetpassword.gohtml", pd)
 }

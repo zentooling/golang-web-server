@@ -1,4 +1,4 @@
-package routes
+package login
 
 import (
 	"log/slog"
@@ -9,7 +9,7 @@ import (
 )
 
 // Logout deletes the current user session and redirects the user to the index page
-func Logout(c *gin.Context) {
+func (svc Service) Logout(c *gin.Context) {
 	session := middleware.DefaultSessionWithOptions(c)
 
 	session.Delete(middleware.SessionIDKey)

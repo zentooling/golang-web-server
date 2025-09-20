@@ -11,16 +11,22 @@ import (
 	"golang.org/x/text/language"
 )
 
-func NewService(ctx *gin.Context, bundle *i18n.Bundle) Service {
+type LangService struct {
+	bundle    *i18n.Bundle
+	ctx       *gin.Context
+	localizer *i18n.Localizer
+}
+
+func NewLangService(ctx *gin.Context, bundle *i18n.Bundle) LangService {
 	localizer := i18n.NewLocalizer(bundle, ctx.Request.Header.Get("Accept-Language"), "en")
-	return Service{
+	return LangService{
 		bundle:    bundle,
 		ctx:       ctx,
 		localizer: localizer,
 	}
 }
 
-func (s *Service) Trans(str string) string {
+func (s *LangService) Trans(str string) string {
 	// TODO, modify this to handle plural and more types of phrases
 	for _, m := range translationMessages {
 		if m.ID == str {

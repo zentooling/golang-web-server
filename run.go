@@ -11,7 +11,9 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
+	"github.com/uberswe/golang-base-project/admin"
 	"github.com/uberswe/golang-base-project/infra"
+	"github.com/uberswe/golang-base-project/login"
 	"github.com/uberswe/golang-base-project/middleware"
 	"github.com/uberswe/golang-base-project/routes"
 )
@@ -114,52 +116,59 @@ func Run() {
 	// A General middleware is defined to add default headers to improve site security
 	r.Use(middleware.General())
 
+	ctx := infra.LairInstance()
+	loginSvc := login.NewService(ctx)
+	adminSvc := admin.NewService(ctx)
+	routeSvc := routes.NewService(ctx)
+
 	// Any request to / will call controller.Index
-	r.GET("/", routes.Index)
+	r.GET("/", routeSvc.Index)
 
 	// We want to handle both POST and GET requests on the /search route. We define both but use the same function to handle the requests.
-	r.GET("/search", routes.Search)
-	r.POST("/search", routes.Search)
-	r.Any("/search/:page", routes.Search)
-	r.Any("/search/:page/:query", routes.Search)
+	r.GET("/search", routeSvc.Search)
+	r.POST("/search", routeSvc.Search)
+	r.Any("/search/:page", routeSvc.Search)
+	r.Any("/search/:page/:query", routeSvc.Search)
 
 	// We define our 404 handler for when a page can not be found
-	r.NoRoute(routes.NoRoute)
+	r.NoRoute(routeSvc.NoRoute)
 
 	// noAuth is a group for routes which should only be accessed if the user is not authenticated
 	noAuth := r.Group("/")
 	noAuth.Use(middleware.NoAuth())
 
-	noAuth.GET("/login", routes.Login)
-	noAuth.GET("/register", routes.Register)
-	noAuth.GET("/activate/resend", routes.ResendActivation)
-	noAuth.GET("/activate/:token", routes.Activate)
-	noAuth.GET("/user/password/forgot", routes.ForgotPassword)
-	noAuth.GET("/user/password/reset/:token", routes.ResetPassword)
-	noAuth.GET("/log/:level", routes.Loglevel)
+	// instantiate login service with lair interface instance - can
+	// use different implementation for testing
 
-	noAuth.GET("/config", routes.ConfigRouteHandler)
+	noAuth.GET("/login", loginSvc.Login)
+	noAuth.GET("/register", loginSvc.Register)
+	noAuth.GET("/activate/resend", loginSvc.ResendActivation)
+	noAuth.GET("/activate/:token", loginSvc.Activate)
+	noAuth.GET("/user/password/forgot", loginSvc.ForgotPassword)
+	noAuth.GET("/user/password/reset/:token", loginSvc.ResetPassword)
+
+	noAuth.GET("/config", adminSvc.ConfigRouteHandler)
 	// We make a separate group for our post requests on the same endpoints so that we can define our throttling middleware on POST requests only.
 	noAuthPost := noAuth.Group("/")
 	noAuthPost.Use(middleware.Throttle(conf.RequestsPerMinute))
 
-	noAuthPost.POST("/config", routes.ConfigRouteHandlerPost)
-	noAuthPost.POST("/loglevel", routes.LoggingRouteHandlerPost)
-	noAuthPost.POST("/login", routes.LoginPost)
-	noAuthPost.POST("/register", routes.RegisterPost)
-	noAuthPost.POST("/activate/resend", routes.ResendActivationPost)
-	noAuthPost.POST("/user/password/forgot", routes.ForgotPasswordPost)
-	noAuthPost.POST("/user/password/reset/:token", routes.ResetPasswordPost)
+	noAuthPost.POST("/config", adminSvc.ConfigRouteHandlerPost)
+	noAuthPost.POST("/loglevel", adminSvc.LoggingRouteHandlerPost)
+	noAuthPost.POST("/login", loginSvc.LoginPost)
+	noAuthPost.POST("/register", loginSvc.RegisterPost)
+	noAuthPost.POST("/activate/resend", loginSvc.ResendActivationPost)
+	noAuthPost.POST("/user/password/forgot", loginSvc.ForgotPasswordPost)
+	noAuthPost.POST("/user/password/reset/:token", loginSvc.ResetPasswordPost)
 
 	// the admin group handles routes that should only be accessible to authenticated users
 	admin := r.Group("/")
 	admin.Use(middleware.Auth())
 	admin.Use(middleware.Sensitive())
 
-	admin.GET("/admin", routes.Admin)
+	admin.GET("/admin", adminSvc.Admin)
 	// We need to handle post from the login redirect
-	admin.POST("/admin", routes.Admin)
-	admin.GET("/logout", routes.Logout)
+	admin.POST("/admin", adminSvc.Admin)
+	admin.GET("/logout", loginSvc.Logout)
 
 	// This starts our webserver, our application will not stop running or go past this point unless
 	// an error occurs or the web server is stopped for some reason. It is designed to run forever.

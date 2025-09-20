@@ -3,6 +3,7 @@ package routes
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"github.com/uberswe/golang-base-project/infra"
 	// "github.com/uberswe/golang-base-project/config"
 
@@ -70,13 +71,23 @@ func getUserId(c *gin.Context) uint {
 	return 0
 }
 
-func DefaultPageData(c *gin.Context) PageData {
-	langService := infra.NewService(c, infra.LairInstance().GetBundle())
+func DefaultPageData(c *gin.Context, bundle *i18n.Bundle, cacheParameter string) PageData {
+	langService := infra.NewLangService(c, bundle)
 	return PageData{
 		Title:           "Home",
 		Messages:        nil,
 		IsAuthenticated: isAuthenticated(c),
-		CacheParameter:  infra.LairInstance().GetConfig().CacheParameter,
+		CacheParameter:  cacheParameter,
 		Trans:           langService.Trans,
+	}
+}
+
+type Service struct {
+	env infra.ILair
+}
+
+func NewService(env infra.ILair) *Service {
+	return &Service{
+		env: env,
 	}
 }

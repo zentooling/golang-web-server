@@ -1,4 +1,4 @@
-package routes
+package admin
 
 import (
 	"fmt"
@@ -11,11 +11,20 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/uberswe/golang-base-project/infra"
 	"github.com/uberswe/golang-base-project/models"
+	"github.com/uberswe/golang-base-project/routes"
 	"gorm.io/gorm"
 )
 
+type Service struct {
+	env infra.ILair
+}
+
+func NewService(env infra.ILair) *Service {
+	return &Service{env: env}
+}
+
 type AdminData struct {
-	PageData
+	routes.PageData
 	Chart Chart
 }
 
@@ -41,8 +50,8 @@ type MonthlySignUps struct {
 }
 
 // Admin renders the admin dashboard
-func Admin(c *gin.Context) {
-	pd := DefaultPageData(c)
+func (svc Service) Admin(c *gin.Context) {
+	pd := routes.DefaultPageData(c, svc.env.GetBundle(), svc.env.GetConfig().CacheParameter)
 	pd.Title = pd.Trans("Admin")
 
 	ad := AdminData{
@@ -65,7 +74,7 @@ func Admin(c *gin.Context) {
 		Find(&msu)
 
 	if res.Error != nil && res.Error != gorm.ErrRecordNotFound {
-		pd.AddMessage(Error, "Something went wrong while fetching user data")
+		pd.AddMessage(routes.Error, "Something went wrong while fetching user data")
 		slog.Error("Admin:DB", "error", res.Error)
 		c.HTML(http.StatusInternalServerError, "admin.gohtml", ad)
 		return

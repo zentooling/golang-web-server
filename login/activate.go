@@ -1,4 +1,4 @@
-package routes
+package login
 
 import (
 	"log/slog"
@@ -6,14 +6,14 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/uberswe/golang-base-project/infra"
 	"github.com/uberswe/golang-base-project/models"
+	"github.com/uberswe/golang-base-project/routes"
 )
 
 // Activate handles requests used to activate a users account
-func Activate(c *gin.Context) {
+func (svc Service) Activate(c *gin.Context) {
 
-	pd := DefaultPageData(c)
+	pd := routes.DefaultPageData(c, svc.env.GetBundle(), svc.env.GetConfig().CacheParameter)
 	activationError := pd.Trans("Please provide a valid activation token")
 	activationSuccess := pd.Trans("Account activated. You may now proceed to login to your account.")
 	pd.Title = pd.Trans("Activate")
@@ -23,18 +23,18 @@ func Activate(c *gin.Context) {
 		Type:  models.TokenUserActivation,
 	}
 
-	db := infra.LairInstance().GetDb()
+	db := svc.env.GetDb()
 
 	res := db.Where(&activationToken).First(&activationToken)
 	if res.Error != nil {
-		pd.AddMessage(Error, activationError)
+		pd.AddMessage(routes.Error, activationError)
 		slog.Error("Activate:TokenNotFound", "error", res.Error)
 		c.HTML(http.StatusBadRequest, "activate.gohtml", pd)
 		return
 	}
 
 	if activationToken.HasExpired() {
-		pd.AddMessage(Error, activationError)
+		pd.AddMessage(routes.Error, activationError)
 		slog.Info("Activate:TokenHasExpired", "error", res.Error)
 		c.HTML(http.StatusBadRequest, "activate.gohtml", pd)
 		return
@@ -45,7 +45,7 @@ func Activate(c *gin.Context) {
 
 	res = db.Where(&user).First(&user)
 	if res.Error != nil {
-		pd.AddMessage(Error, activationError)
+		pd.AddMessage(routes.Error, activationError)
 		slog.Error("Activate:UserNotFound", "error", res.Error)
 		c.HTML(http.StatusBadRequest, "activate.gohtml", pd)
 		return
@@ -56,7 +56,7 @@ func Activate(c *gin.Context) {
 
 	res = db.Save(&user)
 	if res.Error != nil {
-		pd.AddMessage(Error, activationError)
+		pd.AddMessage(routes.Error, activationError)
 		slog.Error("Activate:SaveUser", "error", res.Error)
 		c.HTML(http.StatusBadRequest, "activate.gohtml", pd)
 		return
@@ -65,7 +65,7 @@ func Activate(c *gin.Context) {
 	// We don't need to check for an error here, even if it's not deleted it will not really affect application logic
 	db.Delete(&activationToken)
 
-	pd.AddMessage(Success, activationSuccess)
+	pd.AddMessage(routes.Success, activationSuccess)
 	slog.Info("Activate:Success", "token", activationToken.Value)
 	c.HTML(http.StatusOK, "activate.gohtml", pd)
 }

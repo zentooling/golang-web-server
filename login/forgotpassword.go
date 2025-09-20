@@ -1,4 +1,4 @@
-package routes
+package login
 
 import (
 	"fmt"
@@ -12,48 +12,49 @@ import (
 	email2 "github.com/uberswe/golang-base-project/email"
 	"github.com/uberswe/golang-base-project/infra"
 	"github.com/uberswe/golang-base-project/models"
+	"github.com/uberswe/golang-base-project/routes"
 	"github.com/uberswe/golang-base-project/ulid"
 	"gorm.io/gorm"
 )
 
 // ForgotPassword renders the HTML page where a password request can be initiated
-func ForgotPassword(c *gin.Context) {
-	pd := DefaultPageData(c)
+func (svc Service) ForgotPassword(c *gin.Context) {
+	pd := routes.DefaultPageData(c, svc.env.GetBundle(), svc.env.GetConfig().CacheParameter)
 	pd.Title = pd.Trans("Forgot Password")
 	c.HTML(http.StatusOK, "forgotpassword.gohtml", pd)
 }
 
 // ForgotPasswordPost handles the POST request which requests a password reset and then renders the HTML page with the appropriate message
-func ForgotPasswordPost(c *gin.Context) {
-	pd := DefaultPageData(c)
+func (svc Service) ForgotPasswordPost(c *gin.Context) {
+	pd := routes.DefaultPageData(c, svc.env.GetBundle(), svc.env.GetConfig().CacheParameter)
 	pd.Title = pd.Trans("Forgot Password")
 
-	db := infra.LairInstance().GetDb()
+	db := svc.env.GetDb()
 
 	email := c.PostForm("email")
 	user := models.User{Email: email}
 	res := db.Where(&user).First(&user)
 	if res.Error == nil && user.ActivatedAt != nil {
-		go forgotPasswordEmailHandler(user.ID, email, pd.Trans)
+		go svc.forgotPasswordEmailHandler(user.ID, email, pd.Trans)
 	}
 
-	pd.AddMessage(Success, pd.Trans("An email with instructions to reset password has been sent"))
+	pd.AddMessage(routes.Success, pd.Trans("An email with instructions to reset password has been sent"))
 	// We always return a positive response here to prevent user enumeration
 	c.HTML(http.StatusOK, "forgotpassword.gohtml", pd)
 }
 
-func forgotPasswordEmailHandler(userID uint, email string, trans func(string) string) {
+func (svc Service) forgotPasswordEmailHandler(userID uint, email string, trans func(string) string) {
 	forgotPasswordToken := models.Token{
 		Value: ulid.Generate(),
 		Type:  models.TokenPasswordReset,
 	}
 
-	db := infra.LairInstance().GetDb()
+	db := svc.env.GetDb()
 
 	res := db.Where(&forgotPasswordToken).First(&forgotPasswordToken)
 	if (res.Error != nil && res.Error != gorm.ErrRecordNotFound) || res.RowsAffected > 0 {
 		// If the forgot password token already exists we try to generate it again
-		forgotPasswordEmailHandler(userID, email, trans)
+		svc.forgotPasswordEmailHandler(userID, email, trans)
 		return
 	}
 

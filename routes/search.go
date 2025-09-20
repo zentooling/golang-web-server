@@ -23,10 +23,11 @@ type SearchData struct {
 }
 
 // Search renders the search HTML page and any search results
-func Search(c *gin.Context) {
+func (svc Service) Search(c *gin.Context) {
+	cfg := svc.env
+	pdS := DefaultPageData(c, cfg.GetBundle(), cfg.GetConfig().CacheParameter)
 	page := 1
 	resultsPerPage := 5
-	pdS := DefaultPageData(c)
 	pdS.Title = pdS.Trans("Search")
 	pd := SearchData{
 		PageData: pdS,

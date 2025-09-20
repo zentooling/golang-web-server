@@ -1,4 +1,4 @@
-package routes
+package admin
 
 import (
 	"log/slog"
@@ -7,23 +7,24 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/uberswe/golang-base-project/infra"
+	"github.com/uberswe/golang-base-project/routes"
 )
 
 type ConfigPageData struct {
-	PageData
+	routes.PageData
 	Config   *infra.Config
 	LogLevel string
 }
 
-func pageData(c *gin.Context) *ConfigPageData {
+func (svc Service) pageData(c *gin.Context) *ConfigPageData {
 	return &ConfigPageData{
-		PageData: DefaultPageData(c),
-		Config:   infra.LairInstance().GetConfig(),
-		LogLevel: infra.LairInstance().GetLoggingLevel().Level().String(),
+		PageData: routes.DefaultPageData(c, svc.env.GetBundle(), svc.env.GetConfig().CacheParameter),
+		Config:   svc.env.GetConfig(),
+		LogLevel: svc.env.GetLoggingLevel().Level().String(),
 	}
 }
-func ConfigRouteHandler(c *gin.Context) {
-	pd := pageData(c)
+func (svc Service) ConfigRouteHandler(c *gin.Context) {
+	pd := svc.pageData(c)
 	pd.Title = pd.Trans("Configuration")
 
 	currentLevel := infra.LairInstance().GetLoggingLevel()
@@ -33,14 +34,15 @@ func ConfigRouteHandler(c *gin.Context) {
 }
 
 // LoggingRouteHandlerPost handles change in logging submitted by user
-func LoggingRouteHandlerPost(c *gin.Context) {
+func (svc Service) LoggingRouteHandlerPost(c *gin.Context) {
 
 	levelStr := c.PostForm("log-select")
 
 	level, err := infra.StringToLevel(levelStr)
 
+	// update logging level
 	if err == nil {
-		infra.LairInstance().GetLoggingLevel().Set(level)
+		svc.env.GetLoggingLevel().Set(level)
 	}
 
 	slog.Error("set logging level to " + levelStr)
@@ -49,85 +51,85 @@ func LoggingRouteHandlerPost(c *gin.Context) {
 	slog.Debug("set logging level to " + levelStr)
 
 	// read updated state
-	pd := pageData(c)
+	pd := svc.pageData(c)
 	pd.Title = pd.Trans("Configuration")
-	pd.AddMessage(Success, pd.Trans("Logging level set to "+levelStr))
+	pd.AddMessage(routes.Success, pd.Trans("Logging level set to "+levelStr))
 
 	c.HTML(http.StatusOK, "config.gohtml", pd)
 }
 
-func ConfigRouteHandlerPost(c *gin.Context) {
+func (svc Service) ConfigRouteHandlerPost(c *gin.Context) {
 
-	pd := pageData(c)
+	pd := svc.pageData(c)
 	pd.Title = pd.Trans("Configuration")
 	// this points to config struct so changes are 'persistent'
-	prevCfg := infra.LairInstance().GetConfig()
+	prevCfg := svc.env.GetConfig()
 
 	newValue := c.PostForm("base_url")
 	if newValue != prevCfg.BaseURL {
 		slog.Info("BaseUrl", "newValue", newValue)
 		prevCfg.BaseURL = newValue
-		pd.AddMessage(Success, pd.Trans("Base URL changed"))
+		pd.AddMessage(routes.Success, pd.Trans("Base URL changed"))
 	}
 	newValue = c.PostForm("smtp_host")
 	if newValue != prevCfg.SMTPHost {
 		slog.Info("SmtpHost", "newValue", newValue)
 		prevCfg.SMTPHost = newValue
-		pd.AddMessage(Success, pd.Trans("SMTP host changed"))
+		pd.AddMessage(routes.Success, pd.Trans("SMTP host changed"))
 	}
 	newValue = c.PostForm("smtp_port")
 	if newValue != prevCfg.SMTPPort {
 		slog.Info("SMTPPort", "newValue", newValue)
 		prevCfg.SMTPPort = newValue
-		pd.AddMessage(Success, pd.Trans("SMTP port changed"))
+		pd.AddMessage(routes.Success, pd.Trans("SMTP port changed"))
 	}
 	newValue = c.PostForm("smtp_sender")
 	if newValue != prevCfg.SMTPSender {
 		slog.Info("SMTPSender", "newValue", newValue)
 		prevCfg.SMTPSender = newValue
-		pd.AddMessage(Success, pd.Trans("SMTP sender changed"))
+		pd.AddMessage(routes.Success, pd.Trans("SMTP sender changed"))
 	}
 	newValue = c.PostForm("smtp_username")
 	if newValue != prevCfg.SMTPUsername {
 		slog.Info("SMTPUsername", "newValue", newValue)
 		prevCfg.SMTPUsername = newValue
-		pd.AddMessage(Success, pd.Trans("SMTP username changed"))
+		pd.AddMessage(routes.Success, pd.Trans("SMTP username changed"))
 	}
 	newValue = c.PostForm("smtp_password")
 	if newValue != prevCfg.SMTPPassword {
 		slog.Info("SMTPPassword", "newValue", newValue)
 		prevCfg.SMTPPassword = newValue
-		pd.AddMessage(Success, pd.Trans("SMTP password changed"))
+		pd.AddMessage(routes.Success, pd.Trans("SMTP password changed"))
 	}
 	newValue = c.PostForm("request_per_minute")
 	newValueInt, err := strconv.Atoi(newValue)
 
 	if err != nil {
-		pd.AddMessage(Error, "Can't convert to integer: "+newValue)
+		pd.AddMessage(routes.Error, "Can't convert to integer: "+newValue)
 	} else if newValueInt != prevCfg.RequestsPerMinute {
 		slog.Info("RequestsPerMinute", "newValue", newValue)
 		prevCfg.RequestsPerMinute = newValueInt
-		pd.AddMessage(Success, pd.Trans("RequestsPerMinute changed"))
+		pd.AddMessage(routes.Success, pd.Trans("RequestsPerMinute changed"))
 	}
 	newValue = c.PostForm("cache_parameter")
 	if newValue != prevCfg.CacheParameter {
 		slog.Info("CacheParameter", "newValue", newValue)
 		prevCfg.CacheParameter = newValue
-		pd.AddMessage(Success, pd.Trans("Cache parameter changed"))
+		pd.AddMessage(routes.Success, pd.Trans("Cache parameter changed"))
 	}
 	newValue = c.PostForm("cache_max_age")
 	// reuse from above
 	newValueInt, err = strconv.Atoi(newValue)
 	if err != nil {
-		pd.AddMessage(Error, "Can't convert to integer: "+newValue)
+		pd.AddMessage(routes.Error, "Can't convert to integer: "+newValue)
 	} else if newValueInt != prevCfg.CacheMaxAge {
 		slog.Info("CacheMaxAge", "newValue", newValue)
 		prevCfg.CacheMaxAge = newValueInt
-		pd.AddMessage(Success, pd.Trans("Cache max age changed"))
+		pd.AddMessage(routes.Success, pd.Trans("Cache max age changed"))
 	}
 
 	// refresh with new state
-	pd.Config = infra.LairInstance().GetConfig()
+	// pd.Config = infra.LairInstance().GetConfig()
 
 	c.HTML(http.StatusOK, "config.gohtml", pd)
 }
