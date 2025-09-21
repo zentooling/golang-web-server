@@ -29,21 +29,10 @@ func Run() {
 	// We load environment variables, these are only read when the application launches
 	conf := infra.LoadEnvVariables()
 
-	// this logger can be used to change runtime setting through web
-	loggingLevel := new(slog.LevelVar)
-	loggingLevel.Set(slog.LevelDebug) // default to debug
-	level, err := infra.StringToLevel(conf.LogLevel)
-	if err == nil {
-		loggingLevel.Set(level)
-	}
+	// Init Logging and save leg level var configurable on config page
+	logLevelVar := infra.InitLogging(conf)
 
-	// set default logger level - TODO make this configurable
-	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-		Level: loggingLevel, // Set the default log level to DEBUG
-	}))
-	// Set the logger as the default
-	slog.SetDefault(logger)
-	// Translations
+	// Load Translations
 	bundle := infra.LoadLanguageBundles()
 
 	// We connect to the database using the configuration generated from the environment variables.
@@ -54,7 +43,7 @@ func Run() {
 	}
 
 	// set global app-wide cfg parms
-	infra.InitLair(db, conf, bundle, loggingLevel)
+	infra.InitLair(db, conf, bundle, logLevelVar)
 
 	// Once a database connection is established we run any needed migrations
 	err = infra.MigrateDatabase(db)
