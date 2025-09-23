@@ -1,6 +1,7 @@
 package login
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -51,7 +52,6 @@ func (svc Service) RegisterPost(c *gin.Context) {
 	email := c.PostForm("email")
 
 	// Validate the email
-	// Validate the email
 	validate := validator.New()
 	err = validate.Var(email, "required,email")
 
@@ -63,11 +63,23 @@ func (svc Service) RegisterPost(c *gin.Context) {
 	}
 
 	user := models.User{Email: email}
+	role := models.Role{}
 
 	db := svc.env.GetDb()
 
-	res := db.Where(&user).First(&user)
-	if (res.Error != nil && res.Error != gorm.ErrRecordNotFound) || res.RowsAffected > 0 {
+	// retrieve the 'user' role
+	res := db.Where("name='user'").First(&role)
+	if (res.Error != nil && !errors.Is(res.Error, gorm.ErrRecordNotFound)) || res.RowsAffected > 1 {
+		pd.AddMessage(routes.Error, registerError)
+		slog.Error("RegisterPost", "error", res.Error)
+		c.HTML(http.StatusInternalServerError, "register.gohtml", pd)
+		return
+	}
+
+	user.Roles = append(user.Roles, role)
+
+	res = db.Where(&user).First(&user)
+	if (res.Error != nil && !errors.Is(res.Error, gorm.ErrRecordNotFound)) || res.RowsAffected > 0 {
 		pd.AddMessage(routes.Error, registerError)
 		slog.Error("RegisterPost", "error", res.Error)
 		c.HTML(http.StatusInternalServerError, "register.gohtml", pd)

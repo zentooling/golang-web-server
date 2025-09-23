@@ -2,9 +2,11 @@ package infra
 
 import (
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/uberswe/golang-base-project/models"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
@@ -54,12 +56,55 @@ func attemptConnection(c *Config) (*gorm.DB, error) {
 }
 
 func MigrateDatabase(db *gorm.DB) error {
-	err := db.AutoMigrate(&models.User{}, &models.Token{}, &models.Session{}, &models.Website{})
+	err := db.AutoMigrate(&models.User{}, &models.Role{}, &models.Token{}, &models.Session{}, &models.Website{})
 	seed(db)
 	return err
 }
 
 func seed(db *gorm.DB) {
+
+	roles := []models.Role{
+		{
+			Name:        "admin",
+			Description: "Administrative privileges",
+		},
+		{
+			Name:        "user",
+			Description: "Regular user privileges",
+		},
+	}
+
+	for _, role := range roles {
+		res := db.Where(&role).First(&role)
+		// If no record exists we insert
+		if res.Error != nil && res.Error == gorm.ErrRecordNotFound {
+			db.Save(&role)
+		}
+	}
+
+	// create admin account
+	adminRole := models.Role{}
+	res := db.Where("name='admin'").First(&adminRole)
+	if res.Error != nil && res.Error == gorm.ErrRecordNotFound {
+		slog.Error("unable to find admin role")
+	}
+	// make the account active as of now
+	tm := time.Now()
+
+	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.DefaultCost)
+	userName := "admin@admin.org"
+	adminUser := models.User{
+		Email:       userName,
+		Password:    string(hashedPassword),
+		ActivatedAt: &tm,
+	}
+	adminUser.Roles = append(adminUser.Roles, adminRole)
+
+	// hard delete (w/ Unscoped) previous admin users
+	db.Unscoped().Where(&models.User{Email: userName}).Delete(&models.User{})
+
+	// save new one
+	db.Save(&adminUser)
 	// We seed some websites for our search results
 	websites := []models.Website{
 		{
@@ -104,11 +149,11 @@ func seed(db *gorm.DB) {
 		},
 	}
 
-	for _, w := range websites {
-		res := db.Where(&w).First(&w)
+	for _, website := range websites {
+		res := db.Where(&website).First(&website)
 		// If no record exists we insert
 		if res.Error != nil && res.Error == gorm.ErrRecordNotFound {
-			db.Save(&w)
+			db.Save(&website)
 		}
 	}
 }

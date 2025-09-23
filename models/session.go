@@ -1,8 +1,9 @@
 package models
 
 import (
-	"gorm.io/gorm"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 // Session holds information about user sessions and when they expire
@@ -10,6 +11,7 @@ type Session struct {
 	gorm.Model
 	Identifier string
 	UserID     uint
+	Role       string
 	ExpiresAt  time.Time
 }
 

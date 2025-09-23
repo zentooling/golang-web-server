@@ -26,6 +26,7 @@ func Session(db *gorm.DB) gin.HandlerFunc {
 			res := db.Where(&ses).First(&ses)
 			if res.Error == nil && !ses.HasExpired() {
 				c.Set(UserIDKey, ses.UserID)
+				c.Set(UserRoleKey, ses.Role)
 			} else {
 				slog.Error("Session", "error", res.Error)
 			}

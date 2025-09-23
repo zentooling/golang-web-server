@@ -29,7 +29,7 @@ func Run() {
 	// We load environment variables, these are only read when the application launches
 	conf := infra.LoadEnvVariables()
 
-	// Init Logging and save leg level var configurable on config page
+	// Init Logging and save leg level var - configurable at runtime on config page
 	logLevelVar := infra.InitLogging(conf)
 
 	// Load Translations
@@ -76,9 +76,9 @@ func Run() {
 	// We define our session middleware to be used globally on all routes
 	r.Use(sessions.Sessions("golang_base_project_session", store))
 
-	// log request/responses to see info about bots hitting us
-	r.Use(middleware.RequestLogger())
-	r.Use(middleware.ResponseLogger())
+	//// log request/responses to see info about bots hitting us
+	//r.Use(middleware.RequestLogger())
+	//r.Use(middleware.ResponseLogger())
 
 	// We pass our template variable t to the gin engine so it can be used to render html pages
 	r.SetHTMLTemplate(t)
@@ -136,12 +136,10 @@ func Run() {
 	noAuth.GET("/user/password/forgot", loginSvc.ForgotPassword)
 	noAuth.GET("/user/password/reset/:token", loginSvc.ResetPassword)
 
-	noAuth.GET("/config", adminSvc.ConfigRouteHandler)
 	// We make a separate group for our post requests on the same endpoints so that we can define our throttling middleware on POST requests only.
 	noAuthPost := noAuth.Group("/")
 	noAuthPost.Use(middleware.Throttle(conf.RequestsPerMinute))
 
-	noAuthPost.POST("/config", adminSvc.ConfigRouteHandlerPost)
 	noAuthPost.POST("/loglevel", adminSvc.LoggingRouteHandlerPost)
 	noAuthPost.POST("/login", loginSvc.LoginPost)
 	noAuthPost.POST("/register", loginSvc.RegisterPost)
@@ -149,15 +147,22 @@ func Run() {
 	noAuthPost.POST("/user/password/forgot", loginSvc.ForgotPasswordPost)
 	noAuthPost.POST("/user/password/reset/:token", loginSvc.ResetPasswordPost)
 
-	// the admin group handles routes that should only be accessible to authenticated users
-	admin := r.Group("/")
-	admin.Use(middleware.Auth())
-	admin.Use(middleware.Sensitive())
+	// the adminGroup group handles routes that should only be accessible to authenticated Admin users
+	adminGroup := r.Group("/")
+	adminGroup.Use(middleware.Admin())
+	adminGroup.Use(middleware.Sensitive())
 
-	admin.GET("/admin", adminSvc.Admin)
+	adminGroup.GET("/config", adminSvc.ConfigRouteHandler)
+	adminGroup.POST("/config", adminSvc.ConfigRouteHandlerPost)
+	adminGroup.GET("/admin", adminSvc.Admin)
 	// We need to handle post from the login redirect
-	admin.POST("/admin", adminSvc.Admin)
-	admin.GET("/logout", loginSvc.Logout)
+	adminGroup.POST("/admin", adminSvc.Admin)
+
+	// this group is for the main application which does not require admin privs
+	authGroup := r.Group("/")
+	authGroup.Use(middleware.Auth())
+	authGroup.Use(middleware.Sensitive())
+	authGroup.GET("/logout", loginSvc.Logout)
 
 	// This starts our webserver, our application will not stop running or go past this point unless
 	// an error occurs or the web server is stopped for some reason. It is designed to run forever.

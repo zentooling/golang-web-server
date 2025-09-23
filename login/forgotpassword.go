@@ -10,7 +10,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	email2 "github.com/uberswe/golang-base-project/email"
-	"github.com/uberswe/golang-base-project/infra"
 	"github.com/uberswe/golang-base-project/models"
 	"github.com/uberswe/golang-base-project/routes"
 	"github.com/uberswe/golang-base-project/ulid"
@@ -68,11 +67,11 @@ func (svc Service) forgotPasswordEmailHandler(userID uint, email string, trans f
 		slog.Error("sendForgetPasswordEmail", "error", res.Error)
 		return
 	}
-	sendForgotPasswordEmail(forgotPasswordToken.Value, email, trans)
+	svc.sendForgotPasswordEmail(forgotPasswordToken.Value, email, trans)
 }
 
-func sendForgotPasswordEmail(token string, email string, trans func(string) string) {
-	conf := infra.LairInstance().GetConfig()
+func (svc Service) sendForgotPasswordEmail(token string, email string, trans func(string) string) {
+	conf := svc.env.GetConfig()
 	u, err := url.Parse(conf.BaseURL)
 	if err != nil {
 		slog.Error("sendForgetPasswordEmail", "error", err)

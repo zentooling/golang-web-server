@@ -15,6 +15,7 @@ type PageData struct {
 	Title           string
 	Messages        []Message
 	IsAuthenticated bool
+	IsAdminRole     bool
 	CacheParameter  string
 	Trans           func(s string) string
 }
@@ -51,7 +52,7 @@ func (c MessageType) String() string {
 	return "Unknown"
 }
 
-// Message holds a message which can be rendered as responses on HTML pages
+// Message holds a message which can be rendered as responses on HTML pages in messages.gohtml
 type Message struct {
 	Type    MessageType // success, warning, error, etc.
 	Content string
@@ -61,6 +62,19 @@ type Message struct {
 func isAuthenticated(c *gin.Context) bool {
 	_, exists := c.Get(middleware.UserIDKey)
 	return exists
+}
+
+func isAdminRole(c *gin.Context) bool {
+	role, ret := c.Get(middleware.UserRoleKey)
+	if !ret { // does not exist
+		return false
+	}
+	// ret is true
+	if role.(string) != "admin" {
+		ret = false
+	}
+
+	return ret
 }
 
 func getUserId(c *gin.Context) uint {
@@ -77,6 +91,7 @@ func DefaultPageData(c *gin.Context, bundle *i18n.Bundle, cacheParameter string)
 		Title:           "Home",
 		Messages:        nil,
 		IsAuthenticated: isAuthenticated(c),
+		IsAdminRole:     isAdminRole(c),
 		CacheParameter:  cacheParameter,
 		Trans:           langService.Trans,
 	}

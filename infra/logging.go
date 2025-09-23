@@ -17,10 +17,18 @@ func InitLogging(conf *Config) *slog.LevelVar {
 
 	// set default logger level - TODO make this configurable
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-		Level: loggingLevel, // Set the default log level to DEBUG
+		AddSource:   true,
+		Level:       loggingLevel, // Set the default log level to DEBUG
+		ReplaceAttr: nil,
 	}))
 	// Set the logger as the default
 	slog.SetDefault(logger)
 
 	return loggingLevel
+}
+
+func StringToLevel(s string) (slog.Level, error) {
+	var level slog.Level
+	var err = level.UnmarshalText([]byte(s))
+	return level, err
 }

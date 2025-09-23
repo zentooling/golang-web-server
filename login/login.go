@@ -3,6 +3,7 @@ package login
 import (
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -32,15 +33,22 @@ func (svc Service) Login(c *gin.Context) {
 // LoginPost handles login requests and returns the appropriate HTML and messages
 func (svc Service) LoginPost(c *gin.Context) {
 	pd := routes.DefaultPageData(c, svc.env.GetBundle(), svc.env.GetConfig().CacheParameter)
-	loginError := pd.Trans("Could not login, please make sure that you have typed in the correct email and password. If you have forgotten your password, please click the forgot password link below.")
 	pd.Title = pd.Trans("Login")
+
+	loginError := pd.Trans("Could not login, please make sure that you have typed in the correct email and password. If you have forgotten your password, please click the forgot password link below.")
 
 	db := svc.env.GetDb()
 
 	email := c.PostForm("email")
-	user := models.User{Email: email}
 
-	res := db.Where(&user).First(&user)
+	// load user and associated roles
+
+	//res := db.Model(&models.User{}).Preload("Roles").Find(&user)
+
+	user := models.User{Email: email}
+	res := db.Preload("Roles").Where(&user).First(&user)
+
+	//res := db.Where(&user).First(&user)
 	if res.Error != nil {
 		pd.AddMessage(routes.Error, loginError)
 		slog.Error("LoginPost", "error", res.Error)
@@ -58,6 +66,13 @@ func (svc Service) LoginPost(c *gin.Context) {
 		pd.AddMessage(routes.Error, pd.Trans("Account is not activated yet."))
 		c.HTML(http.StatusBadRequest, "login.gohtml", pd)
 		return
+	}
+
+	if len(user.Roles) == 0 {
+		pd.AddMessage(routes.Error, pd.Trans("Account does not contain role attributes."))
+		c.HTML(http.StatusBadRequest, "login.gohtml", pd)
+		return
+
 	}
 
 	password := c.PostForm("password")
@@ -78,6 +93,13 @@ func (svc Service) LoginPost(c *gin.Context) {
 	// Session is valid for 1 hour
 	ses.ExpiresAt = time.Now().Add(time.Hour)
 	ses.UserID = user.ID
+	var roles []string
+	for _, role := range user.Roles {
+		roles = append(roles, role.Name)
+	}
+	ses.Role = strings.Join(roles, ",") // comma seperated list of roles
+
+	slog.Debug("LoginPost", "session", ses)
 
 	res = db.Save(&ses)
 	if res.Error != nil {
